@@ -3,7 +3,7 @@
 
 number [0-9]
 not_zero [1-9]
-letter [a-z]|[A-Z]|"_"|"$"
+letter [a-zA-Z_$]
 invalid_escape [^\n\rtnfr\\\"]
 valid_escape [tnfr\\\"]
 
@@ -30,8 +30,8 @@ int i = 0;
 [\t\f ]+   {coluna+=yyleng;}
 
 
-({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
-{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
+({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
+{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
 
 
 "true"  {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;}
