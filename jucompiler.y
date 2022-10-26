@@ -1,20 +1,25 @@
+%{//Trabalho realizado por: Andre Filipe de Oliveira Moreira n. 2020239416 Joao Pedro Ventura Pinto n. 2020220907
+%}
 
+%{//yacc -d -t -v
+%}
 %union{
 char* string1;
 }
 
 
+
 %token AND ASSIGN STAR COMMA DIV EQ GE GT LBRACE LE LPAR LSQ LT MINUS MOD NE NOT OR PLUS RBRACE RPAR RSQ SEMICOLON ARROW LSHIFT RSHIFT XOR BOOL CLASS DOTLENGTH DOUBLE ELSE IF INT PRINT PARSEINT PUBLIC RETURN STATIC STRING VOID WHILE RESERVED
 %token <string1> ID INTLIT REALLIT STRLIT BOOLLIT
 
-%unsigned LE LT EQ GE GT NE ASSIGN SEMICOLON
+%nonassoc LE LT EQ GE GT NE ASSIGN SEMICOLON
 
 %right MINUS PLUS NOT
 %left STAR DIV MOD
 %right LPAR
 %left RPAR
-%left IF
-%left ELSE
+%right IF
+%right ELSE
 %left RSHIFT LSHIFT
 %left XOR
 %left AND
