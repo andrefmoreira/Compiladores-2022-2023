@@ -30,62 +30,62 @@ int i = 0;
 [\t\f ]+   {coluna+=yyleng;}
 
 
-({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
-{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;}
+({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;return REALLIT;}
+{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;return REALLIT;}
 
 
-"true"  {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;}
-"false" {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;}
-"&&"    {if(option) printf("AND\n");coluna+=yyleng;}
+"true"  {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;return BOOLLIT;}
+"false" {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;return BOOLLIT;}
+"&&"    {if(option) printf("AND\n");coluna+=yyleng;return AND;}
 
 
-"="     {if(option) printf("ASSIGN\n");coluna+=yyleng;}
-"*"     {if(option) printf("STAR\n");coluna+=yyleng;}
-","     {if(option) printf("COMMA\n");coluna+=yyleng;}
-"/"     {if(option) printf("DIV\n");coluna+=yyleng;}
-"=="    {if(option) printf("EQ\n");coluna+=yyleng;}
-">="    {if(option) printf("GE\n");coluna+=yyleng;}
-">"     {if(option) printf("GT\n");coluna+=yyleng;}
-"{"     {if(option) printf("LBRACE\n");coluna+=yyleng;}
-"<="    {if(option) printf("LE\n");coluna+=yyleng;}
-"<"     {if(option) printf("LT\n");coluna+=yyleng;}
-"("     {if(option) printf("LPAR\n");coluna+=yyleng;}
-"["     {if(option) printf("LSQ\n");coluna+=yyleng;}
-"-"     {if(option) printf("MINUS\n");coluna+=yyleng;}
-"%"     {if(option) printf("MOD\n");coluna+=yyleng;}
-"!="    {if(option) printf("NE\n");coluna+=yyleng;}
-"!"     {if(option) printf("NOT\n");coluna+=yyleng;}
-"||"    {if(option) printf("OR\n");coluna+=yyleng;}
-"+"     {if(option) printf("PLUS\n");coluna+=yyleng;}
-"}"     {if(option) printf("RBRACE\n");coluna+=yyleng;}
-")"     {if(option) printf("RPAR\n");coluna+=yyleng;}
-"]"     {if(option) printf("RSQ\n");coluna+=yyleng;}
-";"     {if(option) printf("SEMICOLON\n");coluna+=yyleng;}
-"->"    {if(option) printf("ARROW\n");coluna+=yyleng;}
-"<<"    {if(option) printf("LSHIFT\n");coluna+=yyleng;}
-">>"    {if(option) printf("RSHIFT\n");coluna+=yyleng;}
-"^"     {if(option) printf("XOR\n");coluna+=yyleng;}
+"="     {if(option) printf("ASSIGN\n");coluna+=yyleng; return ASSIGN;}
+"*"     {if(option) printf("STAR\n");coluna+=yyleng;return STAR;}
+","     {if(option) printf("COMMA\n");coluna+=yyleng;return COMMA;}
+"/"     {if(option) printf("DIV\n");coluna+=yyleng;return DIV;}
+"=="    {if(option) printf("EQ\n");coluna+=yyleng;return EQ;}
+">="    {if(option) printf("GE\n");coluna+=yyleng;return GE;}
+">"     {if(option) printf("GT\n");coluna+=yyleng;return GT;}
+"{"     {if(option) printf("LBRACE\n");coluna+=yyleng;return LBRACE;}
+"<="    {if(option) printf("LE\n");coluna+=yyleng;return LE;}
+"<"     {if(option) printf("LT\n");coluna+=yyleng;return LT;}
+"("     {if(option) printf("LPAR\n");coluna+=yyleng;return LPAR;}
+"["     {if(option) printf("LSQ\n");coluna+=yyleng;return LSQ;}
+"-"     {if(option) printf("MINUS\n");coluna+=yyleng;return MINUS;}
+"%"     {if(option) printf("MOD\n");coluna+=yyleng;return MOD;}
+"!="    {if(option) printf("NE\n");coluna+=yyleng;return NE;}
+"!"     {if(option) printf("NOT\n");coluna+=yyleng;return NOT;}
+"||"    {if(option) printf("OR\n");coluna+=yyleng;return OR;}
+"+"     {if(option) printf("PLUS\n");coluna+=yyleng;return PLUS;}
+"}"     {if(option) printf("RBRACE\n");coluna+=yyleng;return RBRACE;}
+")"     {if(option) printf("RPAR\n");coluna+=yyleng;return RPAR;}
+"]"     {if(option) printf("RSQ\n");coluna+=yyleng;return RSQ;}
+";"     {if(option) printf("SEMICOLON\n");coluna+=yyleng;return SEMICOLON;}
+"->"    {if(option) printf("ARROW\n");coluna+=yyleng;return ARROW;}
+"<<"    {if(option) printf("LSHIFT\n");coluna+=yyleng;return LSHIFT;}
+">>"    {if(option) printf("RSHIFT\n");coluna+=yyleng;return RSHIFT;}
+"^"     {if(option) printf("XOR\n");coluna+=yyleng;return XOR;}
 
-"int"   {if(option) printf("INT\n");coluna+=yyleng;}
-"boolean" {if(option) printf("BOOL\n");coluna+=yyleng;}
-"class" {if(option) printf("CLASS\n");coluna+=yyleng;}
-".length" {if(option) printf("DOTLENGTH\n");coluna+=yyleng;}
-"double"  {if(option) printf("DOUBLE\n");coluna+=yyleng;}
-"else"  {if(option) printf("ELSE\n");coluna+=yyleng;}
-"if"    {if(option) printf("IF\n");coluna+=yyleng;}
-"System.out.print"  {if(option) printf("PRINT\n");coluna+=yyleng;}
-"Integer.parseInt"  {if(option) printf("PARSEINT\n");coluna+=yyleng;}
-"public"    {if(option) printf("PUBLIC\n");coluna+=yyleng;}
-"return"    {if(option) printf("RETURN\n");coluna+=yyleng;}
-"static"    {if(option) printf("STATIC\n");coluna+=yyleng;}
-"String"    {if(option) printf("STRING\n");coluna+=yyleng;}
-"void"  {if(option) printf("VOID\n");coluna+=yyleng;}
-"while" {if(option) printf("WHILE\n");coluna+=yyleng;}
+"int"   {if(option) printf("INT\n");coluna+=yyleng;return INT;}
+"boolean" {if(option) printf("BOOL\n");coluna+=yyleng;return BOOL;}
+"class" {if(option) printf("CLASS\n");coluna+=yyleng;return CLASS;}
+".length" {if(option) printf("DOTLENGTH\n");coluna+=yyleng;return DOTLENGTH;}
+"double"  {if(option) printf("DOUBLE\n");coluna+=yyleng;return DOUBLE;}
+"else"  {if(option) printf("ELSE\n");coluna+=yyleng;return ELSE;}
+"if"    {if(option) printf("IF\n");coluna+=yyleng;return IF;}
+"System.out.print"  {if(option) printf("PRINT\n");coluna+=yyleng;return PRINT;}
+"Integer.parseInt"  {if(option) printf("PARSEINT\n");coluna+=yyleng;return PARSEINT;}
+"public"    {if(option) printf("PUBLIC\n");coluna+=yyleng;return PUBLIC;}
+"return"    {if(option) printf("RETURN\n");coluna+=yyleng;return RETURN;}
+"static"    {if(option) printf("STATIC\n");coluna+=yyleng;return STATIC;}
+"String"    {if(option) printf("STRING\n");coluna+=yyleng;return STRING;}
+"void"  {if(option);coluna+=yyleng;return("VOID");return VOID;}
+"while" {if(option) printf("WHILE\n");coluna+=yyleng;return WHILE;}
 
 
-"++"|"--"|"null"|"Integer"|"System"|"abstract"|"continue"|"for"|"new"|"switch"|"assert"|"default"|"package"|"synchronized"|"do"|"goto"|"private"|"this"|"break"|"implements"|"protected"|"throw"|"byte"|"import"|"throws"|"case"|"enum"|"instanceof"|"transient"|"catch"|"extends"|"short"|"try"|"char"|"final"|"interface"|"finally"|"long"|"strictfp"|"volatile"|"const"|"float"|"native"|"super"|"System"|"Integer"|"null" {if(option) printf("RESERVED(%s)\n" , yytext);coluna+=yyleng;}
-{letter}+({number}|{letter})*   {if(option) printf("ID(%s)\n",yytext);coluna+=yyleng;}
-{number}|"_"*{not_zero}({number}*"_"*{number}*)*{number}  {if(option) printf("INTLIT(%s)\n" , yytext);coluna+=yyleng;}
+"++"|"--"|"null"|"Integer"|"System"|"abstract"|"continue"|"for"|"new"|"switch"|"assert"|"default"|"package"|"synchronized"|"do"|"goto"|"private"|"this"|"break"|"implements"|"protected"|"throw"|"byte"|"import"|"throws"|"case"|"enum"|"instanceof"|"transient"|"catch"|"extends"|"short"|"try"|"char"|"final"|"interface"|"finally"|"long"|"strictfp"|"volatile"|"const"|"float"|"native"|"super"|"System"|"Integer"|"null" {if(option) printf("RESERVED(%s)\n" , yytext);coluna+=yyleng;return RESERVED;}
+{letter}+({number}|{letter})*   {if(option) printf("ID(%s)\n",yytext);coluna+=yyleng;return ID;}
+{number}|"_"*{not_zero}({number}*"_"*{number}*)*{number}  {if(option) printf("INTLIT(%s)\n" , yytext);coluna+=yyleng;return INTLIT;}
 
 <STRING><<EOF>>     {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);BEGIN 0;}
 <STRING>\\{valid_escape}       {string1[i] = '\\';i++;string1[i] = yytext[1];i++ ;coluna += yyleng;}
