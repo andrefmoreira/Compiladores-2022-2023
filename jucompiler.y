@@ -27,45 +27,121 @@ char* string1;
 
 %%
 
-Program: CLASS ID LBRACE '{' MethodDecl | FieldDecl | SEMICOLON '}' RBRACE
+Program: CLASS ID LBRACE Program_ex RBRACE
+Program_ex: 
+        | Program_ex MethodDecl
+        | Program_ex FieldDecl 
+        | Program_ex SEMICOLON
+
 
 MethodDecl: PUBLIC STATIC MethodHeader MethodBody
 
-FieldDecl: PUBLIC STATIC Type ID '{' COMMA ID '}' SEMICOLON
+FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON
+FieldDecl_ex: 
+            | FieldDecl_ex COMMA ID
 
-Type: BOOL | INT | DOUBLE
+Type: BOOL 
+    | INT 
+    | DOUBLE
 
-MethodHeader: '(' Type | VOID ')' ID LPAR '[' FormalParams ']' RPAR
+MethodHeader: MethodHeader_ex2 ID LPAR MethodHeader_ex RPAR
 
-FormalParams: Type ID { COMMA Type ID }
+MethodHeader_ex2:Type
+                |VOID
+MethodHeader_ex: 
+                | FormalParams
+
+FormalParams: Type ID FormalParams_ex
     | STRING LSQ RSQ ID
     ;
+FormalParams_ex:
+                |FormalParams_ex COMMA Type ID
 
-MethodBody: LBRACE '{' Statement | VarDecl '}' RBRACE
 
-VarDecl: Type ID '{' COMMA ID '}' SEMICOLON
+MethodBody: LBRACE MethodBody_ex RBRACE
 
-Statement: LBRACE '{' Statement '}' RBRACE
-    | IF LPAR Expr RPAR Statement '[' ELSE Statement ']'
+MethodBody_ex:
+            |MethodBody_ex Statement
+            |MethodBody_ex VarDecl
+
+VarDecl: Type ID VarDecl_ex SEMICOLON
+
+VarDecl_ex:
+        |VarDecl_ex COMMA ID
+
+Statement: LBRACE Statement_ex RBRACE
+    | IF LPAR Expr RPAR Statement Statement_ex1
     | WHILE LPAR Expr RPAR Statement
-    | RETURN '[' Expr ']' SEMICOLON
-    | '[' '(' MethodInvocation | Assignment | ParseArgs ')' ']' SEMICOLON
-    | PRINT LPAR '(' Expr | STRLIT ')' RPAR SEMICOLON
+    | RETURN Statement_ex2 SEMICOLON
+    | Statement_ex3 SEMICOLON
+    | PRINT LPAR Statement_ex5 RPAR SEMICOLON
     ;
 
-MethodInvocation: ID LPAR '[' Expr '{' COMMA Expr '}' ']' RPAR
+Statement_ex:
+            |Statement_ex Statement
+
+Statement_ex1:
+            |ELSE Statement
+
+Statement_ex2:
+            |Expr
+
+Statement_ex3:
+            |Statement_ex4
+
+Statement_ex4:MethodInvocation
+            |Assignment
+            |ParseArgs
+
+Statement_ex5:Expr
+            |STRLIT
+
+MethodInvocation: ID LPAR MethodInvocation_ex RPAR
+
+MethodInvocation_ex:
+                | Expr MethodInvocation_ex1
+
+MethodInvocation_ex1:
+                |MethodInvocation_ex1 COMMA Expr
 
 Assignment: ID ASSIGN Expr
 
 ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR
 
-Expr: Expr '(' PLUS | MINUS | STAR | DIV | MOD ')' Expr
-    | Expr '(' AND | OR | XOR | LSHIFT | RSHIFT ')' Expr
-    | Expr '(' EQ | GE | GT | LE | LT | NE ')' Expr
-    | '(' MINUS | NOT | PLUS ')' Expr
+Expr: Expr Expr_ex Expr
+    | Expr Expr_ex1 Expr
+    | Expr Expr_ex2 Expr
+    | Expr_ex3 Expr
     | LPAR Expr RPAR
     | MethodInvocation | Assignment | ParseArgs
-    | ID '[' DOTLENGTH ']'
+    | ID Expr_ex4
     | INTLIT | REALLIT | BOOLLIT
     ;
+
+Expr_ex:PLUS
+        |MINUS
+        |STAR
+        |DIV
+        |MOD
+
+Expr_ex1:AND
+        |OR
+        |XOR
+        |LSHIFT
+        |RSHIFT
+
+Expr_ex2:EQ
+        |GE
+        |GT
+        |LE
+        |LT
+        |NE
+
+Expr_ex3:MINUS
+        |NOT
+        |PLUS
+
+Expr_ex4:
+        |DOTLENGTH
+
 %%
