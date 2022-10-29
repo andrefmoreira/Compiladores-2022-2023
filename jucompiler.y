@@ -70,7 +70,7 @@ MethodBody_ex:                                                          {$$ = $1
             ;
 
 VarDecl: Type ID VarDecl_ex SEMICOLON                                   {$$ = $1;}
-        ;
+
 
 VarDecl_ex:                                                             {$$ = $1;}
         |VarDecl_ex COMMA ID                                            {;}
@@ -86,23 +86,23 @@ Statement: LBRACE Statement_ex RBRACE                                   {;}
 
 Statement_ex:                                           {$$ = $1;}
             |Statement_ex Statement                     {;}
-
+            ;
 Statement_ex1:                                          {$$ = $1;}
             |ELSE Statement                             {;}
-
+            ;
 Statement_ex2:                                          {$$ = $1;}
             |Expr                                       {;}
-
+            ;
 Statement_ex3:                                          {$$ = $1;}
             |Statement_ex4                              {;}
-
+            ;
 Statement_ex4:MethodInvocation                          {$$ = $1;}
             |Assignment                                 {$$ = $1;}
             |ParseArgs                                  {$$ = $1;}
-
+            ;
 Statement_ex5:Expr                              {$$ = $1;}
             |STRLIT                             {$$ = $1;}
-
+            ;
 MethodInvocation: ID LPAR MethodInvocation_ex RPAR              {$$ = $1;}
                 ;
 MethodInvocation_ex:                                            {$$ = $1;}
@@ -130,25 +130,25 @@ Expr_ex:PLUS                            {$$ = $1;}
         |STAR                           {$$ = $1;}
         |DIV                            {$$ = $1;}
         |MOD                            {$$ = $1;}
-
+        ;
 Expr_ex1:AND                            {$$ = $1;}
         |OR                             {$$ = $1;}
         |XOR                            {$$ = $1;}
         |LSHIFT                         {$$ = $1;}
         |RSHIFT                         {$$ = $1;}
-
+        ;
 Expr_ex2:EQ                             {$$ = $1;}
         |GE                             {$$ = $1;}
         |GT                             {$$ = $1;}
         |LE                             {$$ = $1;}
         |LT                             {$$ = $1;}
         |NE                             {$$ = $1;} 
-
+        ;
 Expr_ex3:MINUS                          {$$ = $1;}
         |NOT                            {$$ = $1;}
         |PLUS                           {$$ = $1;}
-
+        ;
 Expr_ex4:                               {$$ = $1;}
         |DOTLENGTH                      {;}
-
+        ;
 %%
