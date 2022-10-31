@@ -4,6 +4,12 @@
 %{//yacc -d -t -v
 %}
 
+%union{
+char* str1;
+
+}
+
+
 %{
   #include <stdio.h>
   extern int yylex(void);
@@ -14,122 +20,139 @@
 
 
 %token AND ASSIGN STAR COMMA DIV EQ GE GT LBRACE LE LPAR LSQ LT MINUS MOD NE NOT OR PLUS RBRACE RPAR RSQ SEMICOLON ARROW LSHIFT RSHIFT XOR BOOL CLASS DOTLENGTH DOUBLE ELSE IF INT PRINT PARSEINT PUBLIC RETURN STATIC STRING VOID WHILE RESERVED
-%token ID INTLIT REALLIT STRLIT BOOLLIT
+%token <str1> ID INTLIT REALLIT STRLIT BOOLLIT
 
-%nonassoc LE LT EQ GE GT NE ASSIGN SEMICOLON
+%nonassoc LE LT EQ GE GT NE ASSIGN
 
-%right MINUS PLUS NOT
 %left STAR DIV MOD
 %right LPAR
 %left RPAR
-%right IF
-%right ELSE
+%right IF ELSE
+%left MINUS PLUS
 %left RSHIFT LSHIFT
 %left XOR
 %left AND
 %left OR
+%right NOT
+
+%type <str1> Program Program_ex FieldDecl_ex MethodHeader_ex FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex Statement_ex1 Statement_ex2 MethodInvocation_ex MethodInvocation_ex1 Expr_ex MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr
 
 %%
-Program: CLASS ID LBRACE Program_ex RBRACE                   {printf("%s\n" , $1);}
+Program: CLASS ID LBRACE Program_ex RBRACE                   {printf("%s\n" , $2);}
         ;
 Program_ex:                                                     {;}
-        | Program_ex MethodDecl                                 {$$ = $1;}
-        | Program_ex FieldDecl                                  {$$ = $1;}
-        | Program_ex SEMICOLON                                  {$$ = $1;}
+        | Program_ex MethodDecl                                 {;}
+        | Program_ex FieldDecl                                  {;}
+        | Program_ex SEMICOLON                                  {printf("%s\n",$2);}
         ;       
 
-MethodDecl: PUBLIC STATIC MethodHeader MethodBody                               {$$ = $1;}
+MethodDecl: PUBLIC STATIC MethodHeader MethodBody                               {;}
 
-FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON                         {$$ = $1;}
+FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON                         {printf("%s\n" , $4);}
+
 FieldDecl_ex:                                               {;}
-            | FieldDecl_ex COMMA ID                         {$$ = $1;}
+            | FieldDecl_ex COMMA ID                         {printf("%s\n" , $3);}
             ;
 
-Type: BOOL                           {$$ = $1;}
-    | INT                            {$$ = $1;}
-    | DOUBLE                         {$$ = $1;}
+Type: BOOL                           {;}
+    | INT                            {;}
+    | DOUBLE                         {;}
     ;
-MethodHeader: Type|VOID ID LPAR MethodHeader_ex RPAR                      {$$ = $1;}
+MethodHeader: Type ID LPAR MethodHeader_ex RPAR                                                  {printf("%s\n" , $2);}
+             |VOID ID LPAR MethodHeader_ex RPAR                      {printf("%s\n" , $2);}
 
 MethodHeader_ex:                                {;}
-                | FormalParams                  {$$ = $1;}
+                | FormalParams                  {;}
                 ;
 
-FormalParams: Type ID FormalParams_ex           {$$ = $1;}
-    | STRING LSQ RSQ ID                         {$$ = $1;}
+FormalParams: Type ID FormalParams_ex           {printf("%s\n" , $2);}
+    | STRING LSQ RSQ ID                         {printf("%s\n" , $4);}
     ;
 FormalParams_ex:                                                       {;}
-                |FormalParams_ex COMMA Type ID                         {$$ = $1;}
+                |FormalParams_ex COMMA Type ID                         {printf("%s\n" , $4);}
                 ;
 
 
-MethodBody: LBRACE MethodBody_ex RBRACE                                 {$$ = $1;}
+MethodBody: LBRACE MethodBody_ex RBRACE                                 {;}
 
 MethodBody_ex:                                                          {;}
-            |MethodBody_ex Statement                                    {$$ = $1;}
-            |MethodBody_ex VarDecl                                      {$$ = $1;}
+            |MethodBody_ex Statement                                    {;}
+            |MethodBody_ex VarDecl                                      {;}
             ;
 
-VarDecl: Type ID VarDecl_ex SEMICOLON                                   {$$ = $1;}
+VarDecl: Type ID VarDecl_ex SEMICOLON                                   {printf("%s\n" , $2);}
 
 
 VarDecl_ex:                                                             {;}
-        |VarDecl_ex COMMA ID                                            {$$ = $1;}
+        |VarDecl_ex COMMA ID                                            {printf("%s\n" , $3);}
         ;
 
-Statement: LBRACE Statement_ex RBRACE                                   {$$ = $1;}
-    | IF LPAR Expr RPAR Statement Statement_ex1                         {$$ = $1;}
-    | WHILE LPAR Expr RPAR Statement                                    {$$ = $1;}
-    | RETURN Statement_ex2 SEMICOLON                                    {$$ = $1;}
-    | Statement_ex3 SEMICOLON                                           {$$ = $1;}
-    | PRINT LPAR Expr|STRLIT RPAR SEMICOLON                           {$$ = $1;}
+Statement: LBRACE Statement_ex RBRACE                                   {;}
+    | IF LPAR Expr RPAR Statement                                       {;}
+    | IF LPAR Expr RPAR ELSE Statement                                  {;}
+    | WHILE LPAR Expr RPAR Statement                                    {;}
+    | RETURN Statement_ex1 SEMICOLON                                    {;}
+    | Statement_ex2 SEMICOLON                                           {;}
+    | PRINT LPAR Expr RPAR SEMICOLON                                    {;}
+    | PRINT LPAR STRLIT RPAR SEMICOLON                                  {;}
     ;
 
 Statement_ex:                                           {;}
-            |Statement_ex Statement                     {$$ = $1;}
+            |Statement_ex Statement                     {;}
             ;
 Statement_ex1:                                          {;}
-            |ELSE Statement                             {$$ = $1;}
+            |Expr                                       {;}
             ;
 Statement_ex2:                                          {;}
-            |Expr                                       {$$ = $1;}
-            ;
-Statement_ex3:                                          {;}
-            |MethodInvocation                           {$$ = $1;}
-            |Assignment                                 {$$ = $1;}
-            |ParseArgs                                  {$$ = $1;}
+            |MethodInvocation                           {;}
+            |Assignment                                 {;}
+            |ParseArgs                                  {;}
             ;
 
 
-MethodInvocation: ID LPAR MethodInvocation_ex RPAR              {$$ = $1;}
+MethodInvocation: ID LPAR MethodInvocation_ex RPAR              {printf("%s\n" , $1);}
                 ;
 MethodInvocation_ex:                                            {;}
-                | Expr MethodInvocation_ex1                     {$$ = $1;}
+                | Expr MethodInvocation_ex1                     {;}
                 ;
 MethodInvocation_ex1:                                           {;}
-                |MethodInvocation_ex1 COMMA Expr                {$$ = $1;}
+                |MethodInvocation_ex1 COMMA Expr                {;}
                 ;
-Assignment: ID ASSIGN Expr                                      {$$ = $1;}
+Assignment: ID ASSIGN Expr                                      {printf("%s\n" , $1);}
 
-ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR                   {$$ = $1;}
+ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR                   {printf("%s\n" , $3);}
 
-Expr: Expr PLUS|MINUS|STAR|DIV|MOD Expr                                 {$$ = $1;}
-    | Expr AND|OR|XOR|LSHIFT|RSHIFT Expr                                {$$ = $1;}                              
-    | Expr EQ|GE|GT|LE|LT|NE Expr                                       {$$ = $1;}
-    | Expr_ex1 Expr                                               {$$ = $1;}
-    | LPAR Expr RPAR                                                    {$$ = $1;}
-    | MethodInvocation | Assignment | ParseArgs                         {$$ = $1;}
-    | ID Expr_ex                                                        {$$ = $1;}
-    | INTLIT | REALLIT | BOOLLIT                                        {$$ = $1;}
+Expr: Expr PLUS Expr                                          {;}
+    | Expr MINUS Expr                                         {;}
+    | Expr STAR Expr                                          {;}
+    | Expr DIV Expr                                           {;}
+    | Expr MOD Expr                                           {;}                                
+    | Expr AND Expr                                           {;}
+    | Expr OR Expr                                            {;}
+    | Expr XOR Expr                                           {;}
+    | Expr LSHIFT Expr                                        {;}
+    | Expr RSHIFT Expr                                        {;}                                                             
+    | Expr EQ Expr                                            {;}
+    | Expr GE Expr                                            {;}
+    | Expr GT Expr                                            {;}
+    | Expr LE Expr                                            {;}
+    | Expr LT Expr                                            {;}
+    | Expr NE Expr                                            {;}                                      
+    | MINUS Expr                                              {;}
+    | NOT Expr                                                {;}
+    | PLUS Expr                                               {;}                                               
+    | LPAR Expr RPAR                                          {;}                                                    
+    | MethodInvocation                                        {;}
+    | Assignment                                              {;}
+    | ParseArgs                                               {;}                         
+    | ID Expr_ex                                              {printf("%s\n" , $1);}                                                       
+    | INTLIT                                                  {printf("%s\n" , $1);}
+    | REALLIT                                                 {printf("%s\n" , $1);}
+    | BOOLLIT                                                 {printf("%s\n" , $1);}                                        
     ;
 
-Expr_ex1:MINUS  {$$ = $1;}
-        |NOT    {$$ = $1;}
-        |PLUS   {$$ = $1;}
-        ;
-
 Expr_ex:                                {;}
-        |DOTLENGTH                      {$$ = $1;}
+        |DOTLENGTH                      {;}
         ;
 %%
 
