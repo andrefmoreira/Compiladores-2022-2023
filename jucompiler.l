@@ -7,16 +7,17 @@ letter [a-zA-Z_$]
 invalid_escape [^\n\rtnfr\\\"]
 valid_escape [tnfr\\\"]
 
-%X COMMENT1 STRING ERROR
+%X COMMENT1 STR ERROR
 
 
 %{
+#include "y.tab.h"   
 int option = 0;   
 int line = 1; 
 int line_start = 1; 
 int coluna = 1;
 int coluna_start = 1;
-char string1[32654];
+char STR1[32654];
 int i = 0;
 %}
 
@@ -26,16 +27,16 @@ int i = 0;
 "\n"|"\r\n"|"\r"    {line++;coluna = 1;}
 "/*"    {BEGIN (COMMENT1);line_start = line;coluna_start=coluna;coluna+=yyleng;}
 "//"[^\r\n]*        {coluna += yyleng;}
-\"      {string1[i] = '\"';i++;coluna_start = coluna;coluna+=yyleng;line_start = line;BEGIN (STRING);}
+\"      {STR1[i] = '\"';i++;coluna_start = coluna;coluna+=yyleng;line_start = line;BEGIN (STR);}
 [\t\f ]+   {coluna+=yyleng;}
 
 
 ({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;return REALLIT;}
-{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;return REALLIT;}
+{number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);return REALLIT;}
 
 
-"true"  {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;return BOOLLIT;}
-"false" {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;return BOOLLIT;}
+"true"  {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);return BOOLLIT;}
+"false" {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);return BOOLLIT;}
 "&&"    {if(option) printf("AND\n");coluna+=yyleng;return AND;}
 
 
@@ -78,27 +79,27 @@ int i = 0;
 "public"    {if(option) printf("PUBLIC\n");coluna+=yyleng;return PUBLIC;}
 "return"    {if(option) printf("RETURN\n");coluna+=yyleng;return RETURN;}
 "static"    {if(option) printf("STATIC\n");coluna+=yyleng;return STATIC;}
-"String"    {if(option) printf("STRING\n");coluna+=yyleng;return STRING;}
-"void"  {if(option);coluna+=yyleng;return("VOID");return VOID;}
+"STR"    {if(option) printf("STR\n");coluna+=yyleng;return STR;}
+"void"  {if(option);coluna+=yyleng;return VOID;}
 "while" {if(option) printf("WHILE\n");coluna+=yyleng;return WHILE;}
 
 
 "++"|"--"|"null"|"Integer"|"System"|"abstract"|"continue"|"for"|"new"|"switch"|"assert"|"default"|"package"|"synchronized"|"do"|"goto"|"private"|"this"|"break"|"implements"|"protected"|"throw"|"byte"|"import"|"throws"|"case"|"enum"|"instanceof"|"transient"|"catch"|"extends"|"short"|"try"|"char"|"final"|"interface"|"finally"|"long"|"strictfp"|"volatile"|"const"|"float"|"native"|"super"|"System"|"Integer"|"null" {if(option) printf("RESERVED(%s)\n" , yytext);coluna+=yyleng;return RESERVED;}
-{letter}+({number}|{letter})*   {if(option) printf("ID(%s)\n",yytext);coluna+=yyleng;return ID;}
-{number}|"_"*{not_zero}({number}*"_"*{number}*)*{number}  {if(option) printf("INTLIT(%s)\n" , yytext);coluna+=yyleng;return INTLIT;}
+{letter}+({number}|{letter})*   {if(option) printf("ID(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);return ID;}
+{number}|"_"*{not_zero}({number}*"_"*{number}*)*{number}  {if(option) printf("INTLIT(%s)\n" , yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);return INTLIT;}
 
-<STRING><<EOF>>     {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);BEGIN 0;}
-<STRING>\\{valid_escape}       {string1[i] = '\\';i++;string1[i] = yytext[1];i++ ;coluna += yyleng;}
-<STRING>\"                    {if(option) printf("STRLIT(%s\")\n",string1);memset(string1,0,strlen(string1));i = 0;coluna+=yyleng;BEGIN 0;}
-<STRING>"\n"|"\r\n"|"\r"     {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);coluna = 1 ;memset(string1,0,strlen(string1));i = 0; line++;BEGIN 0;}
-<STRING>\\{invalid_escape}?      {printf("Line %d, col %d: invalid escape sequence (%s)\n",line , coluna  ,yytext);coluna += yyleng;BEGIN ERROR;}
-<STRING>.       {string1[i] = yytext[0];i++;coluna+=yyleng;}
+<STR><<EOF>>     {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);BEGIN 0;}
+<STR>\\{valid_escape}       {STR1[i] = '\\';i++;STR1[i] = yytext[1];i++ ;coluna += yyleng;}
+<STR>\"                    {if(option) printf("STRLIT(%s\")\n",STR1);memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;yylval.str1=(char*)strdup(yytext);BEGIN 0;}
+<STR>"\n"|"\r\n"|"\r"     {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);coluna = 1 ;memset(STR1,0,strlen(STR1));i = 0; line++;BEGIN 0;}
+<STR>\\{invalid_escape}?      {printf("Line %d, col %d: invalid escape sequence (%s)\n",line , coluna  ,yytext);coluna += yyleng;BEGIN ERROR;}
+<STR>.       {STR1[i] = yytext[0];i++;coluna+=yyleng;}
 
 
-<ERROR><<EOF>>     {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);memset(string1,0,strlen(string1));i = 0;coluna+=yyleng;BEGIN 0;}
-<ERROR>\"         {memset(string1,0,strlen(string1));i = 0;coluna+=yyleng;BEGIN 0;}
+<ERROR><<EOF>>     {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;BEGIN 0;}
+<ERROR>\"         {memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;BEGIN 0;}
 <ERROR>\\{valid_escape}       {coluna += yyleng;}
-<ERROR>"\n"|"\r\n"|"\r"     {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);coluna = 1; line++;memset(string1,0,strlen(string1));i = 0;BEGIN 0;}
+<ERROR>"\n"|"\r\n"|"\r"     {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);coluna = 1; line++;memset(STR1,0,strlen(STR1));i = 0;BEGIN 0;}
 <ERROR>\\{invalid_escape}?      {printf("Line %d, col %d: invalid escape sequence (%s)\n",line , coluna  ,yytext);coluna += yyleng;}
 <ERROR>.       {coluna += yyleng;}
 
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
             option = 1;
         }
     }
-    yylex();
+    yyparse();
     return 0;
 }
 
