@@ -15,14 +15,15 @@ char* str1;
   extern int yylex(void);
   extern void yyerror(const char*);
   extern char* yytext;
-        
+  int line = 1;
+  int coluna = 1;       
 %}
 
 
 %token AND ASSIGN STAR COMMA DIV EQ GE GT LBRACE LE LPAR LSQ LT MINUS MOD NE NOT OR PLUS RBRACE RPAR RSQ SEMICOLON ARROW LSHIFT RSHIFT XOR BOOL CLASS DOTLENGTH DOUBLE ELSE IF INT PRINT PARSEINT PUBLIC RETURN STATIC STRING VOID WHILE RESERVED
 %token <str1> ID INTLIT REALLIT STRLIT BOOLLIT
 
-%nonassoc LE LT EQ GE GT NE ASSIGN
+%right LE LT EQ GE GT NE ASSIGN SEMICOLON
 
 %left STAR DIV MOD
 %right LPAR
@@ -35,7 +36,7 @@ char* str1;
 %left OR
 %right NOT
 
-%type <str1> Program Program_ex FieldDecl_ex MethodHeader_ex FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex Statement_ex1 Statement_ex2 MethodInvocation_ex MethodInvocation_ex1 Expr_ex MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr
+%type <str1> Program Program_ex FieldDecl_ex MethodHeader_ex FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex MethodInvocation_ex  MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr
 
 %%
 Program: CLASS ID LBRACE Program_ex RBRACE                   {printf("%s\n" , $2);}
@@ -43,12 +44,13 @@ Program: CLASS ID LBRACE Program_ex RBRACE                   {printf("%s\n" , $2
 Program_ex:                                                     {;}
         | Program_ex MethodDecl                                 {;}
         | Program_ex FieldDecl                                  {;}
-        | Program_ex SEMICOLON                                  {printf("%s\n",$2);}
+        | Program_ex SEMICOLON                                  {;}
         ;       
 
 MethodDecl: PUBLIC STATIC MethodHeader MethodBody                               {;}
 
 FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON                         {printf("%s\n" , $4);}
+        | error SEMICOLON                                                       {;}
 
 FieldDecl_ex:                                               {;}
             | FieldDecl_ex COMMA ID                         {printf("%s\n" , $3);}
@@ -89,73 +91,99 @@ VarDecl_ex:                                                             {;}
 
 Statement: LBRACE Statement_ex RBRACE                                   {;}
     | IF LPAR Expr RPAR Statement                                       {;}
-    | IF LPAR Expr RPAR ELSE Statement                                  {;}
+    | IF LPAR Expr RPAR Statement ELSE Statement                        {;}
     | WHILE LPAR Expr RPAR Statement                                    {;}
-    | RETURN Statement_ex1 SEMICOLON                                    {;}
-    | Statement_ex2 SEMICOLON                                           {;}
+    | RETURN SEMICOLON                                                  {;}
+    | RETURN Expr SEMICOLON                                             {;}
+    | SEMICOLON                                                         {;}
+    | MethodInvocation SEMICOLON                                        {;}
+    | Assignment SEMICOLON                                              {;}
+    | ParseArgs SEMICOLON                                               {;}
     | PRINT LPAR Expr RPAR SEMICOLON                                    {;}
     | PRINT LPAR STRLIT RPAR SEMICOLON                                  {;}
+    | error SEMICOLON                                                   {;}
     ;
 
 Statement_ex:                                           {;}
             |Statement_ex Statement                     {;}
             ;
-Statement_ex1:                                          {;}
-            |Expr                                       {;}
-            ;
-Statement_ex2:                                          {;}
-            |MethodInvocation                           {;}
-            |Assignment                                 {;}
-            |ParseArgs                                  {;}
-            ;
 
+MethodInvocation: ID LPAR RPAR              {printf("%s\n" , $1);}
+                | ID LPAR Expr MethodInvocation_ex RPAR              {printf("%s\n" , $1);}
+                | ID LPAR error RPAR                                  {;}
+                ;
 
-MethodInvocation: ID LPAR MethodInvocation_ex RPAR              {printf("%s\n" , $1);}
-                ;
-MethodInvocation_ex:                                            {;}
-                | Expr MethodInvocation_ex1                     {;}
-                ;
-MethodInvocation_ex1:                                           {;}
-                |MethodInvocation_ex1 COMMA Expr                {;}
+MethodInvocation_ex:                                           {;}
+                |MethodInvocation_ex COMMA Expr                {;}
                 ;
 Assignment: ID ASSIGN Expr                                      {printf("%s\n" , $1);}
 
 ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR                   {printf("%s\n" , $3);}
+          |  PARSEINT LPAR error RPAR                           {;}
 
-Expr: Expr PLUS Expr                                          {;}
-    | Expr MINUS Expr                                         {;}
-    | Expr STAR Expr                                          {;}
-    | Expr DIV Expr                                           {;}
-    | Expr MOD Expr                                           {;}                                
-    | Expr AND Expr                                           {;}
-    | Expr OR Expr                                            {;}
-    | Expr XOR Expr                                           {;}
-    | Expr LSHIFT Expr                                        {;}
-    | Expr RSHIFT Expr                                        {;}                                                             
-    | Expr EQ Expr                                            {;}
-    | Expr GE Expr                                            {;}
-    | Expr GT Expr                                            {;}
-    | Expr LE Expr                                            {;}
-    | Expr LT Expr                                            {;}
-    | Expr NE Expr                                            {;}                                      
-    | MINUS Expr                                              {;}
-    | NOT Expr                                                {;}
-    | PLUS Expr                                               {;}                                               
-    | LPAR Expr RPAR                                          {;}                                                    
+Expr: Expr_2 PLUS Expr_2                                          {;}
+    | Expr_2 MINUS Expr_2                                         {;}
+    | Expr_2 STAR Expr_2                                          {;}
+    | Expr_2 DIV Expr_2                                           {;}
+    | Expr_2 MOD Expr_2                                           {;}                                
+    | Expr_2 AND Expr_2                                           {;}
+    | Expr_2 OR Expr_2                                            {;}
+    | Expr_2 XOR Expr_2                                           {;}
+    | Expr_2 LSHIFT Expr_2                                        {;}
+    | Expr_2 EQ Expr_2                                            {;}
+    | Expr_2 GE Expr_2                                            {;}
+    | Expr_2 GT Expr_2                                            {;}
+    | Expr_2 LE Expr_2                                            {;}
+    | Expr_2 LT Expr_2                                            {;}
+    | Expr_2 NE Expr_2                                            {;}                                      
+    | MINUS Expr_2                                              {;}
+    | NOT Expr_2                                                {;}
+    | PLUS Expr_2                                               {;}                                               
+    | LPAR Expr_2 RPAR                                          {;}                                                    
     | MethodInvocation                                        {;}
     | Assignment                                              {;}
     | ParseArgs                                               {;}                         
-    | ID Expr_ex                                              {printf("%s\n" , $1);}                                                       
+    | ID                                              {printf("%s\n" , $1);}     
+    | ID DOTLENGTH                                              {printf("%s\n" , $1);}                                                       
     | INTLIT                                                  {printf("%s\n" , $1);}
     | REALLIT                                                 {printf("%s\n" , $1);}
-    | BOOLLIT                                                 {printf("%s\n" , $1);}                                        
+    | BOOLLIT                                                 {printf("%s\n" , $1);} 
+    | LPAR error RPAR                                         {;}                                                   
     ;
 
-Expr_ex:                                {;}
-        |DOTLENGTH                      {;}
-        ;
+Expr_2: Expr_2 PLUS Expr_2                                          {;}
+    | Expr_2 MINUS Expr_2                                         {;}
+    | Expr_2 STAR Expr_2                                          {;}
+    | Expr_2 DIV Expr_2                                           {;}
+    | Expr_2 MOD Expr_2                                           {;}                                
+    | Expr_2 AND Expr_2                                           {;}
+    | Expr_2 OR Expr_2                                            {;}
+    | Expr_2 XOR Expr_2                                           {;}
+    | Expr_2 LSHIFT Expr_2                                        {;}
+    | Expr_2 RSHIFT Expr_2                                        {;}                                                             
+    | Expr_2 EQ Expr_2                                            {;}
+    | Expr_2 GE Expr_2                                            {;}
+    | Expr_2 GT Expr_2                                            {;}
+    | Expr_2 LE Expr_2                                            {;}
+    | Expr_2 LT Expr_2                                            {;}
+    | Expr_2 NE Expr_2                                            {;}                                      
+    | MINUS Expr_2                                            {;}
+    | NOT Expr_2                                              {;}
+    | PLUS Expr_2                                             {;}                                               
+    | LPAR Expr_2 RPAR                                        {;}                                                    
+    | MethodInvocation                                        {;}            
+    | ParseArgs                                               {;}                         
+    | ID                                                      {printf("%s\n" , $1);}     
+    | ID DOTLENGTH                                            {printf("%s\n" , $1);}                                                        
+    | INTLIT                                                  {printf("%s\n" , $1);}
+    | REALLIT                                                 {printf("%s\n" , $1);}
+    | BOOLLIT                                                 {printf("%s\n" , $1);}  
+    | LPAR error RPAR                                         {;}                                      
+    ;
+
+
 %%
 
 void yyerror (const char *s) { 
-  printf ("%s: %s\n", s, yytext);
+  printf ("Line %d, col %d: %s: %s\n",line, coluna ,s, yytext);
 }
