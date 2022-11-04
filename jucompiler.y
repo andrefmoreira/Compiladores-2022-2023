@@ -9,14 +9,16 @@ char* str1;
 
 }
 
-
+ 
 %{
   #include <stdio.h>
   extern int yylex(void);
   extern void yyerror(const char*);
   extern char* yytext;
+  extern int yyleng;
   int line = 1;
-  int coluna = 1;       
+  int coluna = 1;    
+  int yacc_print = 0;   
 %}
 
 
@@ -39,7 +41,7 @@ char* str1;
 %type <str1> Program Program_ex FieldDecl_ex MethodHeader_ex FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex MethodInvocation_ex  MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr
 
 %%
-Program: CLASS ID LBRACE Program_ex RBRACE                   {printf("%s\n" , $2);}
+Program: CLASS ID LBRACE Program_ex RBRACE                   {if(yacc_print) printf("%s\n" , $2);}
         ;
 Program_ex:                                                     {;}
         | Program_ex MethodDecl                                 {;}
@@ -49,29 +51,29 @@ Program_ex:                                                     {;}
 
 MethodDecl: PUBLIC STATIC MethodHeader MethodBody                               {;}
 
-FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON                         {printf("%s\n" , $4);}
+FieldDecl: PUBLIC STATIC Type ID FieldDecl_ex SEMICOLON                         {if(yacc_print) printf("%s\n" , $4);}
         | error SEMICOLON                                                       {;}
 
 FieldDecl_ex:                                               {;}
-            | FieldDecl_ex COMMA ID                         {printf("%s\n" , $3);}
+            | FieldDecl_ex COMMA ID                         {if(yacc_print) printf("%s\n" , $3);}
             ;
 
 Type: BOOL                           {;}
     | INT                            {;}
     | DOUBLE                         {;}
     ;
-MethodHeader: Type ID LPAR MethodHeader_ex RPAR                                                  {printf("%s\n" , $2);}
-             |VOID ID LPAR MethodHeader_ex RPAR                      {printf("%s\n" , $2);}
+MethodHeader: Type ID LPAR MethodHeader_ex RPAR                                                  {if(yacc_print) printf("%s\n" , $2);}
+             |VOID ID LPAR MethodHeader_ex RPAR                      {if(yacc_print) printf("%s\n" , $2);}
 
 MethodHeader_ex:                                {;}
                 | FormalParams                  {;}
                 ;
 
-FormalParams: Type ID FormalParams_ex           {printf("%s\n" , $2);}
-    | STRING LSQ RSQ ID                         {printf("%s\n" , $4);}
+FormalParams: Type ID FormalParams_ex           {if(yacc_print) printf("%s\n" , $2);}
+    | STRING LSQ RSQ ID                         {if(yacc_print) printf("%s\n" , $4);}
     ;
 FormalParams_ex:                                                       {;}
-                |FormalParams_ex COMMA Type ID                         {printf("%s\n" , $4);}
+                |FormalParams_ex COMMA Type ID                         {if(yacc_print) printf("%s\n" , $4);}
                 ;
 
 
@@ -82,11 +84,11 @@ MethodBody_ex:                                                          {;}
             |MethodBody_ex VarDecl                                      {;}
             ;
 
-VarDecl: Type ID VarDecl_ex SEMICOLON                                   {printf("%s\n" , $2);}
+VarDecl: Type ID VarDecl_ex SEMICOLON                                   {if(yacc_print) printf("%s\n" , $2);}
 
 
 VarDecl_ex:                                                             {;}
-        |VarDecl_ex COMMA ID                                            {printf("%s\n" , $3);}
+        |VarDecl_ex COMMA ID                                            {if(yacc_print) printf("%s\n" , $3);}
         ;
 
 Statement: LBRACE Statement_ex RBRACE                                   {;}
@@ -108,17 +110,17 @@ Statement_ex:                                           {;}
             |Statement_ex Statement                     {;}
             ;
 
-MethodInvocation: ID LPAR RPAR              {printf("%s\n" , $1);}
-                | ID LPAR Expr MethodInvocation_ex RPAR              {printf("%s\n" , $1);}
+MethodInvocation: ID LPAR RPAR              {if(yacc_print) printf("%s\n" , $1);}
+                | ID LPAR Expr MethodInvocation_ex RPAR              {if(yacc_print) printf("%s\n" , $1);}
                 | ID LPAR error RPAR                                  {;}
                 ;
 
 MethodInvocation_ex:                                           {;}
                 |MethodInvocation_ex COMMA Expr                {;}
                 ;
-Assignment: ID ASSIGN Expr                                      {printf("%s\n" , $1);}
+Assignment: ID ASSIGN Expr                                      {if(yacc_print) printf("%s\n" , $1);}
 
-ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR                   {printf("%s\n" , $3);}
+ParseArgs: PARSEINT LPAR ID LSQ Expr RSQ RPAR                   {if(yacc_print) printf("%s\n" , $3);}
           |  PARSEINT LPAR error RPAR                           {;}
 
 Expr: Expr_2 PLUS Expr_2                                          {;}
@@ -143,11 +145,11 @@ Expr: Expr_2 PLUS Expr_2                                          {;}
     | MethodInvocation                                        {;}
     | Assignment                                              {;}
     | ParseArgs                                               {;}                         
-    | ID                                              {printf("%s\n" , $1);}     
-    | ID DOTLENGTH                                              {printf("%s\n" , $1);}                                                       
-    | INTLIT                                                  {printf("%s\n" , $1);}
-    | REALLIT                                                 {printf("%s\n" , $1);}
-    | BOOLLIT                                                 {printf("%s\n" , $1);} 
+    | ID                                              {if(yacc_print) printf("%s\n" , $1);}     
+    | ID DOTLENGTH                                              {if(yacc_print) printf("%s\n" , $1);}                                                       
+    | INTLIT                                                  {if(yacc_print) printf("%s\n" , $1);}
+    | REALLIT                                                 {if(yacc_print) printf("%s\n" , $1);}
+    | BOOLLIT                                                 {if(yacc_print) printf("%s\n" , $1);} 
     | LPAR error RPAR                                         {;}                                                   
     ;
 
@@ -173,11 +175,11 @@ Expr_2: Expr_2 PLUS Expr_2                                          {;}
     | LPAR Expr_2 RPAR                                        {;}                                                    
     | MethodInvocation                                        {;}            
     | ParseArgs                                               {;}                         
-    | ID                                                      {printf("%s\n" , $1);}     
-    | ID DOTLENGTH                                            {printf("%s\n" , $1);}                                                        
-    | INTLIT                                                  {printf("%s\n" , $1);}
-    | REALLIT                                                 {printf("%s\n" , $1);}
-    | BOOLLIT                                                 {printf("%s\n" , $1);}  
+    | ID                                                      {if(yacc_print) printf("%s\n" , $1);}     
+    | ID DOTLENGTH                                            {if(yacc_print) printf("%s\n" , $1);}                                                        
+    | INTLIT                                                  {if(yacc_print) printf("%s\n" , $1);}
+    | REALLIT                                                 {if(yacc_print) printf("%s\n" , $1);}
+    | BOOLLIT                                                 {if(yacc_print) printf("%s\n" , $1);}  
     | LPAR error RPAR                                         {;}                                      
     ;
 
@@ -185,5 +187,5 @@ Expr_2: Expr_2 PLUS Expr_2                                          {;}
 %%
 
 void yyerror (const char *s) { 
-  printf ("Line %d, col %d: %s: %s\n",line, coluna ,s, yytext);
+    printf ("Line %d, col %d: %s: %s\n",line, coluna-yyleng ,s, yytext);
 }
