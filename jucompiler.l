@@ -16,6 +16,7 @@ int option = 0;
 int yacc_option = 0;   
 extern int line; 
 int line_start = 1; 
+extern int yacc_print;
 extern int coluna;
 int coluna_start = 1;
 char STR1[32654];
@@ -122,6 +123,7 @@ int main(int argc, char *argv[])
             yylex();
         }
         if(!(strcmp(argv[1] , "-t"))){
+            yacc_print = 1;
             yacc_option = 1;
             yyparse();
         }
