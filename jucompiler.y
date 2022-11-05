@@ -25,7 +25,7 @@ char* str1;
 %token AND ASSIGN STAR COMMA DIV EQ GE GT LBRACE LE LPAR LSQ LT MINUS MOD NE NOT OR PLUS RBRACE RPAR RSQ SEMICOLON ARROW LSHIFT RSHIFT XOR BOOL CLASS DOTLENGTH DOUBLE ELSE IF INT PRINT PARSEINT PUBLIC RETURN STATIC STRING VOID WHILE RESERVED
 %token <str1> ID INTLIT REALLIT STRLIT BOOLLIT
 
-%right LE LT EQ GE GT NE ASSIGN SEMICOLON
+%right LE LT EQ GE GT NE ASSIGN 
 
 %left STAR DIV MOD
 %right LPAR
@@ -101,8 +101,8 @@ Statement: LBRACE Statement_ex RBRACE                                   {;}
     | MethodInvocation SEMICOLON                                        {;}
     | Assignment SEMICOLON                                              {;}
     | ParseArgs SEMICOLON                                               {;}
-    | PRINT LPAR Expr RPAR SEMICOLON                                    {;}
-    | PRINT LPAR STRLIT RPAR SEMICOLON                                  {;}
+    | PRINT LPAR Expr RPAR SEMICOLON                                    {if(yacc_print) printf("Print\n" );}
+    | PRINT LPAR STRLIT RPAR SEMICOLON                                  {if(yacc_print) printf("Print\n" );;}
     | error SEMICOLON                                                   {;}
     ;
 
@@ -132,6 +132,7 @@ Expr: Expr_2 PLUS Expr_2                                          {;}
     | Expr_2 OR Expr_2                                            {;}
     | Expr_2 XOR Expr_2                                           {;}
     | Expr_2 LSHIFT Expr_2                                        {;}
+    | Expr_2 RSHIFT Expr_2                                        {;}
     | Expr_2 EQ Expr_2                                            {;}
     | Expr_2 GE Expr_2                                            {;}
     | Expr_2 GT Expr_2                                            {;}
@@ -141,7 +142,7 @@ Expr: Expr_2 PLUS Expr_2                                          {;}
     | MINUS Expr_2                                              {;}
     | NOT Expr_2                                                {;}
     | PLUS Expr_2                                               {;}                                               
-    | LPAR Expr_2 RPAR                                          {;}                                                    
+    | LPAR Expr RPAR                                          {;}                                                    
     | MethodInvocation                                        {;}
     | Assignment                                              {;}
     | ParseArgs                                               {;}                         
@@ -172,7 +173,7 @@ Expr_2: Expr_2 PLUS Expr_2                                          {;}
     | MINUS Expr_2                                            {;}
     | NOT Expr_2                                              {;}
     | PLUS Expr_2                                             {;}                                               
-    | LPAR Expr_2 RPAR                                        {;}                                                    
+    | LPAR Expr RPAR                                        {;}                                                    
     | MethodInvocation                                        {;}            
     | ParseArgs                                               {;}                         
     | ID                                                      {if(yacc_print) printf("%s\n" , $1);}     
