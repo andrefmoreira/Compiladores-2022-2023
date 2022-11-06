@@ -126,6 +126,9 @@ int main(int argc, char *argv[])
             yacc_print = 1;
             yacc_option = 1;
             yyparse();
+            if(!yaccerror){
+                printTree(arvore,0);
+            }
         }
         if(!(strcmp(argv[1] , "-e2"))){
             yacc_option=1;
