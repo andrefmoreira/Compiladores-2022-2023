@@ -4,12 +4,6 @@
 %{//yacc -d -t -v
 %}
 
-%union{
-char* str1;
-
-}
-
- 
 %{
   #include <stdio.h>
   #include "tree.h"
@@ -24,6 +18,13 @@ char* str1;
   char tipo[SIZE];
   int num_statements = 0;
 %}
+
+%union{
+char* str1;
+tnode* node;
+lnode* lnode;
+}
+
 
 
 %token AND ASSIGN STAR COMMA DIV EQ GE GT LBRACE LE LPAR LSQ LT MINUS MOD NE NOT OR PLUS RBRACE RPAR RSQ SEMICOLON ARROW LSHIFT RSHIFT XOR BOOL CLASS DOTLENGTH DOUBLE ELSE IF INT PRINT PARSEINT PUBLIC RETURN STATIC STRING VOID WHILE RESERVED
@@ -42,7 +43,7 @@ char* str1;
 %left OR
 %right NOT
 
-%type <str1> Program Program_ex FieldDecl_ex MethodHeader_ex MethodInvocation_aux FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex Statement_aux MethodInvocation_ex  MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr Expr_2
+%type <node> Program Program_ex FieldDecl_ex MethodHeader_ex MethodInvocation_aux FormalParams_ex MethodBody_ex VarDecl_ex Statement_ex Statement_aux MethodInvocation_ex  MethodDecl FieldDecl Type MethodHeader FormalParams MethodBody VarDecl Statement MethodInvocation Assignment ParseArgs Expr Expr_2
 
 %%
 Program: CLASS ID LBRACE Program_ex RBRACE                   {$$ = arvore = add_filho(add_node("Program",NULL), add_irmao(add_node("Id",$2),$4));}

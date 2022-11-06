@@ -11,7 +11,8 @@ valid_escape [tnfr\\\"]
 
 
 %{
-#include "y.tab.h"   
+#include "y.tab.h"
+#include "tree.h"   
 int option = 0;
 int yacc_option = 0;   
 extern int line; 
@@ -21,6 +22,7 @@ extern int coluna;
 int coluna_start = 1;
 char STR1[32654];
 int i = 0;
+extern tnode* arvore;
 %}
 
 
