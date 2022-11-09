@@ -11,7 +11,9 @@ valid_escape [tnfr\\\"]
 
 
 %{
-#include "y.tab.h"   
+#include "y.tab.h"
+#include "tree.h"
+#include <string.h>   
 int option = 0;
 int yacc_option = 0;   
 extern int line; 
@@ -21,6 +23,8 @@ extern int coluna;
 int coluna_start = 1;
 char STR1[32654];
 int i = 0;
+extern tnode* arvore;
+int error = 0;
 %}
 
 
@@ -33,7 +37,7 @@ int i = 0;
 [\t\f ]+            {coluna+=yyleng;}
 
 
-({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;if(yacc_option) return REALLIT;}
+({number}+("_"*{number}+)*"."({number}+("_"*{number}+)*)*|"."{number}+("_"*{number}+)*)(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))?   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);if(yacc_option) return REALLIT;}
 {number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);if(yacc_option) return REALLIT;}
 
 
@@ -90,15 +94,15 @@ int i = 0;
 {letter}+({number}|{letter})*                             {if(option) printf("ID(%s)\n",yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);if(yacc_option) return ID;}
 {number}|"_"*{not_zero}({number}*"_"*{number}*)*{number}  {if(option) printf("INTLIT(%s)\n" , yytext);coluna+=yyleng;yylval.str1=(char*)strdup(yytext);if(yacc_option) return INTLIT;}
 
-<STR><<EOF>>                            {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);BEGIN 0;}
+<STR><<EOF>>                            {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);BEGIN 0;}
 <STR>\\{valid_escape}                   {STR1[i] = '\\';i++;STR1[i] = yytext[1];i++ ;coluna += yyleng;}
 <STR>\"                                 {if(option) printf("STRLIT(%s\")\n",STR1);i = 0;coluna+=yyleng;strcat(STR1,"\""); ;yytext = strdup(STR1);yyleng = strlen(STR1); yylval.str1 = strdup(STR1); memset(STR1,0,strlen(STR1));BEGIN 0; return STRLIT;}
-<STR>"\n"|"\r\n"|"\r"                   {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);coluna = 1 ;memset(STR1,0,strlen(STR1));i = 0; line++;BEGIN 0;}
+<STR>"\n"|"\r\n"|"\r"                   {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);coluna = 1 ;memset(STR1,0,strlen(STR1));i = 0; line++;BEGIN 0;}
 <STR>\\{invalid_escape}?                {printf("Line %d, col %d: invalid escape sequence (%s)\n",line , coluna  ,yytext);coluna += yyleng;BEGIN ERROR;}
 <STR>.                                  {STR1[i] = yytext[0];i++;coluna+=yyleng;}
 
 
-<ERROR><<EOF>>                          {printf("Line %d, col %d: unterminated STR literal\n" , line_start,coluna_start);memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;BEGIN 0;}
+<ERROR><<EOF>>                          {printf("Line %d, col %d: unterminated string literal\n" , line_start,coluna_start);memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;BEGIN 0;}
 <ERROR>\"                               {memset(STR1,0,strlen(STR1));i = 0;coluna+=yyleng;BEGIN 0;}
 <ERROR>\\{valid_escape}                 {coluna += yyleng;}
 <ERROR>"\n"|"\r\n"|"\r"                 {printf("Line %d, col %d: unterminated String literal\n" , line_start,coluna_start);coluna = 1; line++;memset(STR1,0,strlen(STR1));i = 0;BEGIN 0;}
@@ -126,7 +130,7 @@ int main(int argc, char *argv[])
             yacc_print = 1;
             yacc_option = 1;
             yyparse();
-            if(!yaccerror){
+            if(!error){
                 printTree(arvore,0);
             }
         }

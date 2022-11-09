@@ -11,30 +11,20 @@ tnode *add_node(char* nome, char* valor){
 }
 
 tnode *add_irmao(tnode* prIrmao, tnode* seIrmao){
-    lnode* aux = prIrmao->irmaos;
-    if(aux != NULL){
-        for(; aux->next != NULL; aux = aux->next);
+    if(prIrmao != NULL && seIrmao != NULL){
+        tnode * aux = prIrmao;
+        for(aux = prIrmao; aux->irmaos; aux = aux->irmaos);
+        aux->irmaos = seIrmao;
+
+        return prIrmao;
     }
-    else{
-        lnode* irmaos = (lnode*) malloc(sizeof(lnode));
-        aux = irmaos;
-        
-    }
-    aux->node = seIrmao;
-    return prIrmao;
 }
 
 tnode *add_filho(tnode* pai, tnode* filho){
-    lnode* aux = pai->filhos;
-    if(aux != NULL){
-        for(;aux->next != NULL; aux = aux->next);
+    if(pai != NULL && filho != NULL){
+        pai->filhos = filho;
+        return pai;
     }
-    else{
-        lnode* filhos = (lnode*) malloc(sizeof(lnode));
-        aux = filhos;
-    }
-    aux->node = filho;
-    return pai;
 }
 
 void printTree(tnode* node, int nivel){
@@ -48,8 +38,8 @@ void printTree(tnode* node, int nivel){
         } else {
             printf("%s(%s)\n", node->tipo, node->valor);
         }
-        printTree(node->filhos->node, (nivel+1));
-        printTree(node->irmaos->node, nivel);
+        printTree(node->filhos, (nivel+1));
+        printTree(node->irmaos, nivel);
 
     }
 }

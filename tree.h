@@ -2,22 +2,13 @@
 #include <stdlib.h>
 #define SIZE 1024
 
-typedef struct list_node{
-    tnode* node;
-    lnode* next;
-} lnode;
 
-
-typedef struct tree_node{
+typedef struct tnode{
     char* tipo;
     char* valor;
-    lnode* irmaos;
-    lnode* filhos;
+    struct tnode* irmaos;
+    struct tnode* filhos;
 } tnode;
-
-typedef struct tree{
-    tnode* raiz;
-} tree;
 
 tnode *add_node(char* nome, char* valor);
 
