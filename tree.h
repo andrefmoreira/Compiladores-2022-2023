@@ -1,3 +1,5 @@
+#ifndef TREE_H
+#define TREE_H
 #include <stdio.h>
 #include <stdlib.h>
 #define SIZE 1024
@@ -17,3 +19,4 @@ tnode *add_irmao(tnode* prIrmao, tnode* seIrmao);
 tnode *add_filho(tnode* pai, tnode* filho);
 
 void printTree(tnode* node, int nivel);
+#endif

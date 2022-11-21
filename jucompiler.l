@@ -13,7 +13,8 @@ valid_escape [tnfr\\\"]
 %{
 #include "y.tab.h"
 #include "tree.h"
-#include <string.h>   
+#include <string.h>
+#include "semantics.h"   
 int option = 0;
 int yacc_option = 0;   
 extern int line; 
@@ -24,6 +25,7 @@ int coluna_start = 1;
 char STR1[32654];
 int i = 0;
 extern tnode* arvore;
+extern table* tabela;
 int error = 0;
 %}
 
@@ -140,6 +142,17 @@ int main(int argc, char *argv[])
         }
         if(!(strcmp(argv[1] , "-e1"))){
             yylex();
+        }
+        if(!(strcmp(argv[1], "-s"))){
+            yacc_print = 1;
+            yacc_option = 1;
+            yyparse();
+            if(!error){
+                printTree(arvore,0);
+                check_program(arvore);
+                show_table(tabela);
+            }
+            
         }
     }
     else

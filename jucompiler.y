@@ -94,7 +94,6 @@ MethodBody_ex:                                                          {$$ = NU
 
 VarDecl: Type ID VarDecl_ex SEMICOLON                                   {$$ = add_irmao(add_filho(add_node("VarDecl", NULL), add_irmao($1, add_node("Id", $2))), $3); strcpy(tipo, $1->tipo);}
 
-
 VarDecl_ex:                                                             {$$ = NULL;}
         |COMMA ID VarDecl_ex                                             {$$ = add_irmao(add_filho(add_node("VarDecl", NULL), add_irmao(add_node(strdup(tipo), NULL), add_node("Id", $2))), $3);}
         ;
@@ -190,10 +189,10 @@ Expr_2: Expr_2 PLUS Expr_2                                        {$$ = add_filh
     | Expr_2 LE Expr_2                                            {$$ = add_filho(add_node("Le", NULL), add_irmao($1, $3));}
     | Expr_2 LT Expr_2                                            {$$ = add_filho(add_node("Lt", NULL), add_irmao($1, $3));}
     | Expr_2 NE Expr_2                                            {$$ = add_filho(add_node("Ne", NULL), add_irmao($1, $3));}                                      
-    | MINUS Expr_2                %prec UNARY                  {$$ = add_filho(add_node("Minus", NULL), $2);}
-    | NOT Expr_2                  %prec UNARY                    {$$ = add_filho(add_node("Not", NULL), $2);}
-    | PLUS Expr_2                 %prec UNARY                   {$$ = add_filho(add_node("Plus", NULL), $2);}                                               
-    | LPAR Expr RPAR                                        {$$ = $2;}                                                    
+    | MINUS Expr_2                %prec UNARY                     {$$ = add_filho(add_node("Minus", NULL), $2);}
+    | NOT Expr_2                  %prec UNARY                     {$$ = add_filho(add_node("Not", NULL), $2);}
+    | PLUS Expr_2                 %prec UNARY                     {$$ = add_filho(add_node("Plus", NULL), $2);}                                               
+    | LPAR Expr RPAR                                              {$$ = $2;}                                                    
     | MethodInvocation                                        {$$ = $1;}            
     | ParseArgs                                               {$$ = $1;}                         
     | ID                                                      {$$ = add_node("Id",$1);}     
