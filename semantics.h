@@ -2,6 +2,7 @@
 #define SEMANTICS_H
 #include "symtab.h" 
 #include "tree.h"
+#include <stdbool.h>
 
 int check_program(struct tnode* p);
 int check_methodDecl(struct tnode* p, table_element* class_element);

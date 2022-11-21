@@ -88,7 +88,7 @@ int error = 0;
 "return"                    {if(option) printf("RETURN\n");coluna+=yyleng;if(yacc_option) return RETURN;}
 "static"                    {if(option) printf("STATIC\n");coluna+=yyleng;if(yacc_option) return STATIC;}
 "String"                    {if(option) printf("String\n");coluna+=yyleng;if(yacc_option) return STRING;}
-"void"                      {if(option);coluna+=yyleng;if(yacc_option) return VOID;}
+"void"                      {if(option) printf("VOID\n"); coluna+=yyleng;if(yacc_option) return VOID;}
 "while"                     {if(option) printf("WHILE\n");coluna+=yyleng;if(yacc_option) return WHILE;}
 
 

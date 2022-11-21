@@ -1,6 +1,7 @@
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 #include <string.h>
+#include <stdbool.h>
 
 typedef enum {integer, character, doub} basic_type;
 
@@ -8,12 +9,12 @@ typedef enum {integer, character, doub} basic_type;
 typedef struct _t1{
 	char name[32];
 	char type[32];
+	bool param;
 	struct _t1 *next;
 } table_element;
 
 typedef struct table{
 	char nome[65535];
-	char tipo[32];
 	struct table* next_table;
 	table_element* table_element;
 } table;

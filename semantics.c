@@ -7,13 +7,10 @@ int check_program(struct tnode* p) {
     tabela = (table*) malloc(sizeof(table));
     int errorcount=0;
     tnode* tmp;
-    table_element* class_element = (table_element*) malloc(sizeof(table_element));
-    tabela->table_element = class_element;
     strcpy(tabela->nome, p->filhos->valor);
-    strcpy(tabela->tipo,"Class");
-    
+    tabela->table_element = (table_element*) malloc(sizeof(table_element));
     for(tmp=p->filhos->irmaos; tmp; tmp=tmp->irmaos){
-        errorcount+=check_methodDecl(tmp, class_element);
+        errorcount+=check_methodDecl(tmp, tabela->table_element);
     }
     return errorcount;
 }
@@ -42,7 +39,6 @@ int check_methodHeader(struct tnode* p, table_element* class_element, table* met
         return 1;
     }
     strcpy(method_table->nome, p->filhos->irmaos->valor);
-    strcpy(method_table->tipo, "Method");
     table_element* new_el = insert_el(method_table->table_element, "return", p->filhos->tipo);
     errorcount += check_params(p->filhos->irmaos->irmaos, method_table);
 
@@ -65,6 +61,7 @@ int check_paramDecl(struct tnode* p, table_element* method_element){
         //printf("Symbol %s already defined!\n", iid->id);
         return 1;
     }
+    new->param = true;
     return errorcount;
 }
 
