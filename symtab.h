@@ -15,6 +15,7 @@ typedef struct _t1{
 
 typedef struct table{
 	char nome[65535];
+	char tipo[65535];
 	struct table* next_table;
 	table_element* table_element;
 } table;
@@ -22,5 +23,6 @@ typedef struct table{
 table_element *insert_el(table_element* class_element, char *str, char *tipo);
 void show_table();
 table_element *search_el(char *str);
+table *new_table(table* symtab, table* new_table);
 
 #endif

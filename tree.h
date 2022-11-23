@@ -10,6 +10,7 @@ typedef struct tnode{
     char* valor;
     struct tnode* irmaos;
     struct tnode* filhos;
+    char* data;
 } tnode;
 
 tnode *add_node(char* nome, char* valor);

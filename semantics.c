@@ -5,43 +5,53 @@ table* tabela;
 
 int check_program(struct tnode* p) {
     tabela = (table*) malloc(sizeof(table));
+    table_element *new_el = (table_element*) malloc(sizeof(table_element));
+    tabela->table_element = new_el;
     int errorcount=0;
     tnode* tmp;
     strcpy(tabela->nome, p->filhos->valor);
-    tabela->table_element = (table_element*) malloc(sizeof(table_element));
     for(tmp=p->filhos->irmaos; tmp; tmp=tmp->irmaos){
-        errorcount+=check_methodDecl(tmp, tabela->table_element);
+        if(strcmp(tmp->tipo,"MethodDecl")==0){
+            errorcount+=check_methodDecl(tmp);
+        }
+        if(strcmp(tmp->tipo, "FieldDecl")==0){
+            errorcount+=check_fieldDecl(tmp);
+        }
     }
     return errorcount;
 }
 
-int check_methodDecl(struct tnode* p, table_element* class_element){
-    int errorcount=0;
-    table* method_table;
-    method_table = (table*) malloc(sizeof(table));
-    table_element* method_element;
-    method_element = (table_element*) malloc(sizeof(table_element));
-    method_table->table_element = method_element;
-    table* aux;
-    table* anterior;
-    for(aux = tabela; aux; anterior = aux, aux=aux->next_table);
-    anterior->next_table = method_table;
-    errorcount+=check_methodHeader(p->filhos, class_element, method_table);
-    errorcount+=check_methodBody(p->filhos->irmaos, method_table);
-    return errorcount;
-}
-
-int check_methodHeader(struct tnode* p, table_element* class_element, table* method_table){
-    int errorcount=0;
-    table_element* new = insert_el(class_element, p->filhos->irmaos->valor, p->filhos->tipo);
+int check_fieldDecl(struct tnode* p){
+    int errorcount = 0;
+    table_element* new = insert_el(tabela->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
     if(new == NULL){
         //printf("Symbol %s already defined!\n", iid->id);
         return 1;
     }
-    strcpy(method_table->nome, p->filhos->irmaos->valor);
+    return errorcount;
+}
+
+int check_methodDecl(struct tnode* p){
+    int errorcount=0;
+    table* method_table = (table*) malloc(sizeof(table));
+    strcpy(method_table->nome,p->filhos->filhos->irmaos->valor);
+    strcpy(method_table->tipo,p->filhos->filhos->tipo);
+    table* new = new_table(tabela,method_table);
+    if(new == NULL){
+        //printf("Symbol %s already defined!\n", iid->id);
+        return 1;
+    }
+    errorcount+=check_methodHeader(p->filhos, method_table);
+    errorcount+=check_methodBody(p->filhos->irmaos, method_table);
+    return errorcount;
+}
+
+int check_methodHeader(struct tnode* p, table* method_table){
+    int errorcount=0;
+    table_element *aux = (table_element*) malloc(sizeof(table_element));
+    method_table->table_element = aux;
     table_element* new_el = insert_el(method_table->table_element, "return", p->filhos->tipo);
     errorcount += check_params(p->filhos->irmaos->irmaos, method_table);
-
     return errorcount;
 }
 
@@ -49,14 +59,14 @@ int check_params(struct tnode* p, table* method_table){
     int errorcount=0;
     tnode* tmp;
     for(tmp=p->filhos; tmp; tmp=tmp->irmaos){
-        errorcount += check_paramDecl(tmp, method_table->table_element);
+        errorcount += check_paramDecl(tmp, method_table);
     }
     return errorcount;
 }
 
-int check_paramDecl(struct tnode* p, table_element* method_element){
+int check_paramDecl(struct tnode* p, table* method_table){
     int errorcount=0;
-    table_element* new = insert_el(method_element, p->filhos->irmaos->valor, p->filhos->tipo);
+    table_element* new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
     if(new == NULL){
         //printf("Symbol %s already defined!\n", iid->id);
         return 1;
