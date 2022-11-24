@@ -147,11 +147,11 @@ int main(int argc, char *argv[])
             yacc_print = 1;
             yacc_option = 1;
             yyparse();
-            if(!error){
+            //if(!error){
                 printTree(arvore,0);
                 check_program(arvore);
                 show_table(tabela);
-            }
+            //}
             
         }
     }
