@@ -13,4 +13,5 @@ int check_methodBody(struct tnode*p, table* method_table);
 int check_var_decl(struct tnode* p, table* method_table);
 int check_fieldDecl(struct tnode* p);
 int check_call(struct tnode* tnode, table* method_table);
+void create_argumets(struct tnode* tnode);
 #endif

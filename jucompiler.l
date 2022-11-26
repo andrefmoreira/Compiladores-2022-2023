@@ -26,6 +26,7 @@ char STR1[32654];
 int i = 0;
 extern tnode* arvore;
 extern table* tabela;
+extern int second_phase;
 int error = 0;
 %}
 
@@ -148,9 +149,9 @@ int main(int argc, char *argv[])
             yacc_option = 1;
             yyparse();
             //if(!error){
-                printTree(arvore,0);
                 check_program(arvore);
                 show_table(tabela);
+                printTree(arvore,0);
             //}
             
         }

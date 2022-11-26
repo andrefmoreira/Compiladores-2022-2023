@@ -34,9 +34,15 @@ void printTree(tnode* node, int nivel){
             printf("..");
         }
         if(node->valor == NULL){
-            printf("%s\n", node->tipo);
+            if(node->data[0] == '\0')
+                printf("%s\n", node->tipo);
+            else
+                printf("%s - %s\n", node->tipo, node->data);
         } else {
-            printf("%s(%s)\n", node->tipo, node->valor);
+            if(node->data[0] == '\0')
+                printf("%s(%s)\n", node->tipo, node->valor);
+            else
+                 printf("%s(%s) - %s\n", node->tipo, node->valor , node->data);
         }
         printTree(node->filhos, (nivel+1));
         printTree(node->irmaos, nivel);
