@@ -155,35 +155,87 @@ int check_var_decl(struct tnode *p, table *method_table)
 int check_call(struct tnode *tnode, table *method_table)
 {
     int errorcount = 0;
+    int double_convert = 0;
+    int counter = 0;
     table *aux;
+    table *function = NULL;
+    char arguments[40000];
+    char aux_string[40000];
     table_element *el_aux;
     struct tnode *node_aux;
-    char arguments[40000];
 
-    memset(arguments,0,strlen(arguments));
-
+    table* test;
+    memset(aux_string,0,strlen(aux_string));
     create_argumets(tnode);
-    strcat( arguments,"(");
 
-    if (tnode->filhos->irmaos != NULL){
-        for(node_aux = tnode->filhos->irmaos ; node_aux; node_aux = node_aux->irmaos){
+    for(test = tabela->next_table; test!=NULL; test = test->next_table){
 
-            if(node_aux->data[0] != '\0'){
-                if(node_aux->irmaos == NULL)
-                    strcat(arguments , node_aux->data);
-                else{
-                    strcat(arguments , node_aux->data);
-                    strcat(arguments , ",");
+        memset(arguments,0,strlen(arguments));
+        strcat(arguments, "(");
+
+        table_element* params;
+        params = test->table_element->next;
+        
+        if(tnode->filhos->irmaos != NULL){
+            for(node_aux = tnode->filhos->irmaos ; node_aux; node_aux = node_aux->irmaos){
+                params = params->next;
+
+                if(params == NULL)
+                    break;
+                
+                if(params != NULL){  
+                    if(strcmp(params->type , node_aux->data) != 0){
+                        if(!(strcmp(node_aux->data , "int") == 0 && strcmp(params->type , "double") == 0)){ 
+                            //não é igual, vamos acabar este for e vamos para o proximo
+                            break;
+                        }
+                    }
                 }
+            
+            if((strcmp(node_aux->data , "int") == 0 && strcmp(params->type , "double") == 0))
+                double_convert += 1;
+
+            if(params->next != NULL){
+                strcat(arguments , params->type);
+                strcat(arguments , ",");
             }
+            else
+                strcat(arguments , params->type);
+
+
+            if(params->next == NULL && node_aux->irmaos == NULL){
+                if(function != NULL){
+                    if(double_convert < counter){
+                        function = test;
+                        counter = double_convert;
+                        strcpy(aux_string , arguments);
+                    }
+                }
+                else{
+                    function = test;
+                    counter = double_convert;
+                    strcpy(aux_string , arguments);
+                }
+
+            }
+            double_convert = 0;
 
         }
     }
-    strcat(arguments , ")");
-    printf("ARGUMENTS NESTE MOMENTO %s\n" , arguments);
-    strcpy(tnode->data , arguments);
-    printf("olha o calll %s \n" , tnode->data);
+    else{
+        
+        if(params->next == NULL){
+            function = test;
+            strcpy(aux_string , arguments);
+        }
 
+
+    }
+}   
+    strcat(aux_string , ")");
+    if(function != NULL)
+        strcpy(tnode->data , function->tipo);
+    strcpy(tnode->filhos->data , aux_string);
 
     for (aux = tabela->next_table; aux; aux = aux->next_table)
     {
