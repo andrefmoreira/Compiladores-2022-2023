@@ -66,19 +66,19 @@ FieldDecl_ex:                                               {$$ = NULL;}
             | COMMA ID FieldDecl_ex                        {$$ = add_irmao(add_filho(add_node("FieldDecl",NULL),add_irmao(add_node(strdup(tipo),NULL),add_node("Id",$2))),$3);}
             ;
 
-Type: BOOL                           {$$ = add_node("boolean",NULL);strcpy(tipo,"boolean");}
-    | INT                            {$$ = add_node("int",NULL);strcpy(tipo,"int");}
-    | DOUBLE                         {$$ = add_node("double",NULL);strcpy(tipo,"double");}
+Type: BOOL                           {$$ = add_node("Bool",NULL);strcpy(tipo,"Bool");}
+    | INT                            {$$ = add_node("Int",NULL);strcpy(tipo,"Int");}
+    | DOUBLE                         {$$ = add_node("Double",NULL);strcpy(tipo,"Double");}
     ;
 MethodHeader: Type ID LPAR MethodHeader_ex RPAR                      {$$ = add_filho(add_node("MethodHeader",NULL),add_irmao($1,add_irmao(add_node("Id",$2),add_filho(add_node("MethodParams",NULL),$4))));}
-             |VOID ID LPAR MethodHeader_ex RPAR                      {$$ = add_filho(add_node("MethodHeader", NULL), add_irmao(add_node("void", NULL), add_irmao(add_node("Id", $2), add_filho(add_node("MethodParams", NULL), $4))));}
+             |VOID ID LPAR MethodHeader_ex RPAR                      {$$ = add_filho(add_node("MethodHeader", NULL), add_irmao(add_node("Void", NULL), add_irmao(add_node("Id", $2), add_filho(add_node("MethodParams", NULL), $4))));}
 
 MethodHeader_ex:                                {$$ = NULL;}
                 | FormalParams                  {$$ = $1;}
                 ;
 
 FormalParams: Type ID FormalParams_ex           {$$ = add_irmao(add_filho(add_node("ParamDecl", NULL), add_irmao($1 , add_node("Id", $2))), $3);}
-    | STRING LSQ RSQ ID                         {$$ = add_filho(add_node("ParamDecl", NULL), add_irmao(add_node("String[]", NULL) , add_node("Id", $4)));}
+    | STRING LSQ RSQ ID                         {$$ = add_filho(add_node("ParamDecl", NULL), add_irmao(add_node("StringArray", NULL) , add_node("Id", $4)));}
     ;
 FormalParams_ex:                                                       {$$ = NULL;}
                 | COMMA Type ID FormalParams_ex                        {$$ = add_irmao(add_filho(add_node("ParamDecl", NULL), add_irmao($2, add_node("Id", $3))), $4);}

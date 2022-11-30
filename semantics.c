@@ -2,8 +2,6 @@
 #include <stdio.h>
 
 table *tabela;
-int second_phase;
-
 
 int check_program(struct tnode *p)
 {
@@ -25,22 +23,23 @@ int check_program(struct tnode *p)
             errorcount += check_fieldDecl(tmp);
         }
     }
-    
-    second_phase = 1;
 
+    aux = tabela->next_table;
     for (tmp = p->filhos->irmaos; tmp; tmp = tmp->irmaos)
     {
         if (strcmp(tmp->tipo, "MethodDecl") == 0)
         {
-            errorcount += check_methodDecl(tmp);
-        }
-        if (strcmp(tmp->tipo, "FieldDecl") == 0)
-        {
-            errorcount += check_fieldDecl(tmp);
+            errorcount += check_methodBody(tmp->filhos->irmaos, aux);
+            if (aux->next_table == NULL)
+            {
+                break;
+            }
+            else
+            {
+                aux = aux->next_table;
+            }
         }
     }
-
-
 
     return errorcount;
 }
@@ -69,22 +68,19 @@ int check_methodDecl(struct tnode *p)
         // printf("Symbol %s already defined!\n", iid->id);
         return 1;
     }
-
     errorcount += check_methodHeader(p->filhos, method_table);
-
-    if(second_phase)
-        errorcount += check_methodBody(p->filhos->irmaos, method_table);
-
     return errorcount;
 }
 
 int check_methodHeader(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
+
     table_element *aux = (table_element *)malloc(sizeof(table_element));
     method_table->table_element = aux;
     table_element *new_el = insert_el(method_table->table_element, "return", p->filhos->tipo);
     errorcount += check_params(p->filhos->irmaos->irmaos, method_table);
+
     return errorcount;
 }
 
@@ -95,7 +91,6 @@ int check_params(struct tnode *p, table *method_table)
     for (tmp = p->filhos; tmp; tmp = tmp->irmaos)
     {
         errorcount += check_paramDecl(tmp, method_table);
-
     }
     return errorcount;
 }
@@ -116,6 +111,7 @@ int check_paramDecl(struct tnode *p, table *method_table)
 int check_methodBody(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
+
     char aux[256];
     tnode *p_aux;
     table *aux1;
@@ -126,27 +122,59 @@ int check_methodBody(struct tnode *p, table *method_table)
         if (strcmp(aux, "VarDecl") == 0)
         {
             errorcount += check_var_decl(p_aux, method_table);
-
-
         }
         if (strcmp(aux, "Call") == 0)
         {
             errorcount += check_call(p_aux, method_table);
-            
+        }
+        if (strcmp(aux, "If") == 0)
+        {
+            // errorcount += check_if(p_aux, method_table);
+        }
+        if (strcmp(aux, "Assign") == 0)
+        {
+            // errorcount += check_assign(p_aux, method_table);
         }
     }
+
+    return errorcount;
+}
+
+int check_assign(struct tnode *p, table *method_table)
+{
+    int errorcount = 0;
+    table_element *aux = search_el(method_table, p->filhos->valor);
+    if (aux == NULL)
+        aux = search_el(tabela, p->filhos->valor);
+    if (aux == NULL) // nao foi definido
+        return 1;
+    strcpy(p->data, aux->type);
+    strcpy(p->filhos->data, aux->type);
+
     return errorcount;
 }
 
 int check_var_decl(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
-    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
 
+    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
     if (new == NULL)
     {
         // printf("Symbol %s already defined!\n", iid->id);
         return 1;
+    }
+
+    return errorcount;
+}
+
+int check_if(struct tnode *p, table *method_table)
+{
+    int errorcount = 0;
+    char *aux;
+    strcpy(aux, p->filhos->tipo);
+    if (strcmp(aux, "Eq") == 0 || strcmp(aux, "Ge") == 0 || strcmp(aux, "Gt") == 0 || strcmp(aux, "Le") == 0 || strcmp(aux, "Lt") == 0 || strcmp(aux, "Ne") == 0 || strcmp(aux, "Not") == 0 || strcmp(aux, "BoolLit") == 0)
+    {
     }
 
     return errorcount;
@@ -164,78 +192,92 @@ int check_call(struct tnode *tnode, table *method_table)
     table_element *el_aux;
     struct tnode *node_aux;
 
-    table* test;
-    memset(aux_string,0,strlen(aux_string));
-    create_argumets(tnode);
+    table *test;
+    memset(aux_string, 0, strlen(aux_string));
+    create_argumets(tnode, method_table);
 
-    for(test = tabela->next_table; test!=NULL; test = test->next_table){
+    for (test = tabela->next_table; test != NULL; test = test->next_table)
+    {
 
-        memset(arguments,0,strlen(arguments));
+        memset(arguments, 0, strlen(arguments));
         strcat(arguments, "(");
 
-        table_element* params;
+        table_element *params;
         params = test->table_element->next;
-        
-        if(tnode->filhos->irmaos != NULL){
-            for(node_aux = tnode->filhos->irmaos ; node_aux; node_aux = node_aux->irmaos){
-                params = params->next;
 
-                if(params == NULL)
+        if (tnode->filhos->irmaos != NULL)
+        {
+            for (node_aux = tnode->filhos->irmaos; node_aux; node_aux = node_aux->irmaos)
+            {
+                params = params->next;
+                if (params == NULL)
                     break;
-                
-                if(params != NULL){  
-                    if(strcmp(params->type , node_aux->data) != 0){
-                        if(!(strcmp(node_aux->data , "int") == 0 && strcmp(params->type , "double") == 0)){ 
-                            //não é igual, vamos acabar este for e vamos para o proximo
+
+                if (params != NULL)
+                {
+                    if (strcmp(params->type, node_aux->data) != 0)
+                    {
+                        if (!(strcmp(node_aux->data, "int") == 0 && strcmp(params->type, "double") == 0))
+                        {
+                            // não é igual, vamos acabar este for e vamos para o proximo
                             break;
                         }
                     }
                 }
-            
-            if((strcmp(node_aux->data , "int") == 0 && strcmp(params->type , "double") == 0))
-                double_convert += 1;
 
-            if(params->next != NULL){
-                strcat(arguments , params->type);
-                strcat(arguments , ",");
-            }
-            else
-                strcat(arguments , params->type);
+                if ((strcmp(node_aux->data, "int") == 0 && strcmp(params->type, "double") == 0))
+                    double_convert += 1;
 
+                if (params->next != NULL)
+                {
+                    strcat(arguments, params->type);
+                    strcat(arguments, ",");
+                }
+                else
+                    strcat(arguments, params->type);
 
-            if(params->next == NULL && node_aux->irmaos == NULL){
-                if(function != NULL){
-                    if(double_convert < counter){
+                if (params->next == NULL && node_aux->irmaos == NULL)
+                {
+                    if (function != NULL)
+                    {
+                        if (double_convert < counter)
+                        {
+                            function = test;
+                            counter = double_convert;
+                            strcpy(aux_string, arguments);
+                        }
+                    }
+                    else
+                    {
                         function = test;
                         counter = double_convert;
-                        strcpy(aux_string , arguments);
+                        strcpy(aux_string, arguments);
                     }
                 }
-                else{
-                    function = test;
-                    counter = double_convert;
-                    strcpy(aux_string , arguments);
-                }
-
+                double_convert = 0;
             }
-            double_convert = 0;
+        }
+        else
+        {
 
+            if (params->next == NULL)
+            {
+                function = test;
+                strcpy(aux_string, arguments);
+            }
         }
     }
-    else{
-        
-        if(params->next == NULL){
-            function = test;
-            strcpy(aux_string , arguments);
-        }
-
-
+    strcat(aux_string, ")");
+    if (function != NULL)
+    {
+        strcpy(tnode->data, function->tipo);
+        strcpy(tnode->filhos->data, aux_string);
     }
-}   
-    strcat(aux_string , ")");
-    if(function != NULL)
-        strcpy(tnode->data , function->tipo);
-    strcpy(tnode->filhos->data , aux_string);
+    else
+    {
+        strcpy(tnode->data, "undef");
+        strcpy(tnode->filhos->data, "undef");
+    }
 
     for (aux = tabela->next_table; aux; aux = aux->next_table)
     {
@@ -286,34 +328,60 @@ int check_call(struct tnode *tnode, table *method_table)
                     return 0;
                 }
             }
-            
         }
     }
     return errorcount;
 }
 
+void create_argumets(struct tnode *tnode, table *method_table)
+{
 
-void create_argumets(struct tnode* tnode){
+    struct tnode *node_aux;
 
-struct tnode *node_aux;               
+    if (tnode->filhos->irmaos != NULL)
+    {
+        for (node_aux = tnode->filhos->irmaos; node_aux; node_aux = node_aux->irmaos)
+        {
 
-if (tnode->filhos->irmaos != NULL){
-    for(node_aux = tnode->filhos->irmaos ; node_aux; node_aux = node_aux->irmaos){
-        if(strcmp("DecLit" , node_aux->tipo) == 0){
-            strcpy(node_aux->data , "int");
-        }
-        if(strcmp("RealLit" , node_aux->tipo) == 0){
-            strcpy(node_aux->data , "double");
-        }
-        if(strcmp("BoolLit" , node_aux->tipo) == 0){
-            strcpy(node_aux->data , "boolean");
+            if (strcmp("Call", node_aux->tipo) == 0)
+            {
+                check_call(node_aux, method_table);
+            }
+
+            if (strcmp("Id", node_aux->tipo) == 0)
+            {
+                table_element *aux = search_el(method_table, node_aux->valor);
+                if (aux == NULL)
+                {
+                    aux = search_el(tabela, node_aux->filhos->valor);
+                    if (aux == NULL)
+                        strcpy(node_aux->data, "undef");
+                    else
+                    {
+                        strcpy(node_aux->data, aux->type);
+                    }
+                }
+                else
+                {
+                    strcpy(node_aux->data, aux->type);
+                }
+            }
+
+            if (strcmp("DecLit", node_aux->tipo) == 0)
+            {
+                strcpy(node_aux->data, "int");
+            }
+            if (strcmp("RealLit", node_aux->tipo) == 0)
+            {
+                strcpy(node_aux->data, "double");
+            }
+            if (strcmp("BoolLit", node_aux->tipo) == 0)
+            {
+                strcpy(node_aux->data, "boolean");
+            }
         }
     }
 }
-
-
-}
-
 
 /*
 int check_vardec_list(is_vardec_list* ivl) {
