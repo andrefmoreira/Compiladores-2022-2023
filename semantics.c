@@ -135,9 +135,38 @@ int check_methodBody(struct tnode *p, table *method_table)
         {
             // errorcount += check_assign(p_aux, method_table);
         }
+        if (strcmp(aux, "Print") == 0)
+        {
+            errorcount += check_print(p_aux, method_table);
+        }
     }
 
     return errorcount;
+}
+
+int check_print(struct tnode *p, table *method_table)
+{
+
+    char *type;
+    if (strcmp(p->filhos->tipo, "StrLit") == 0)
+        strcpy(p->filhos->data, "String");
+
+    if (strcmp(p->filhos->tipo, "Call") == 0)
+    { // duas maneiras de fazer, dar check 1 a 1 ou, ter um check para expr que tem check para todos os nos dentro do expr
+        check_call(p->filhos, method_table);
+    }
+    /*
+    if (strcmp(p->filhos->tipo, "Add") == 0){
+        check_add(p->filhos, method_table);
+    }
+    */
+
+
+    //Verificar se o tipo do print é correto no fim de tudo.
+    if (!(strcmp(p->filhos->data, "int") == 0 | strcmp(p->filhos->data, "double") == 0 | strcmp(p->filhos->data, "boolean") == 0 | strcmp(p->filhos->data, "string") == 0))
+    {
+        printf("Erro no valor do print\n"); // depois mudar para o print correto
+    }
 }
 
 int check_assign(struct tnode *p, table *method_table)

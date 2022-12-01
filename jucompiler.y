@@ -124,12 +124,12 @@ Statement_ex:                                                           {$$ = NU
 Statement_aux:Expr                                                      {$$ = $1;}
             | STRLIT                                                    {$$ = add_node("StrLit",$1);}
 
-MethodInvocation: ID LPAR RPAR              {$$ = add_filho(add_node("Call", NULL), add_irmao(add_node("Id", $1), NULL));}
-                | ID LPAR MethodInvocation_aux RPAR              {$$ = add_filho(add_node("Call", NULL), add_irmao(add_node("Id", $1), $3));}
+MethodInvocation: ID LPAR RPAR                                        {$$ = add_filho(add_node("Call", NULL), add_irmao(add_node("Id", $1), NULL));}
+                | ID LPAR MethodInvocation_aux RPAR                   {$$ = add_filho(add_node("Call", NULL), add_irmao(add_node("Id", $1), $3));}
                 | ID LPAR error RPAR                                  {$$ = NULL;}
                 ;
 
-MethodInvocation_aux: Expr MethodInvocation_ex           {$$ = add_irmao($1,$2);}
+MethodInvocation_aux: Expr MethodInvocation_ex                 {$$ = add_irmao($1,$2);}
                 ;
 
 MethodInvocation_ex:                                           {$$ = NULL;}
