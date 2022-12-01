@@ -17,4 +17,6 @@ void create_argumets(struct tnode* tnode, table *method_table);
 int check_if(struct tnode *p, table * method_table);
 int check_assign(struct tnode*p, table* method_table);
 int check_print(struct tnode *p, table *method_table);
+void expr_checks(struct tnode* tnode, table *method_table);
+int check_operations(struct tnode* tnode, table *method_table);
 #endif

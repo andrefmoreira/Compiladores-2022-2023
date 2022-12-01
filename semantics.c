@@ -139,7 +139,26 @@ int check_methodBody(struct tnode *p, table *method_table)
         {
             errorcount += check_print(p_aux, method_table);
         }
+        if (strcmp(aux, "Assign") == 0)
+        {
+            errorcount += check_assign(p_aux, method_table);
+        }
     }
+
+    return errorcount;
+}
+
+int check_assign(struct tnode *p, table *method_table)
+{
+    int errorcount = 0;
+
+    expr_checks(p->filhos, method_table);
+    if(p->filhos->data[0] == '\0'){
+        printf("A data do filho é null\n");
+        strcpy(p->data, "Undef");
+    }
+    else
+        strcpy(p->data, p->filhos->data);
 
     return errorcount;
 }
@@ -148,39 +167,205 @@ int check_print(struct tnode *p, table *method_table)
 {
 
     char *type;
-    if (strcmp(p->filhos->tipo, "StrLit") == 0)
+    if (strcmp(p->filhos->tipo, "StrLit") == 0){
         strcpy(p->filhos->data, "String");
+    }
 
     if (strcmp(p->filhos->tipo, "Call") == 0)
     { // duas maneiras de fazer, dar check 1 a 1 ou, ter um check para expr que tem check para todos os nos dentro do expr
         check_call(p->filhos, method_table);
     }
-    /*
-    if (strcmp(p->filhos->tipo, "Add") == 0){
-        check_add(p->filhos, method_table);
+
+    if (strcmp(p->filhos->tipo, "Add") == 0)
+    {
+        check_operations(p->filhos, method_table);
     }
-    */
 
-
-    //Verificar se o tipo do print é correto no fim de tudo.
+    // Verificar se o tipo do print é correto no fim de tudo.
     if (!(strcmp(p->filhos->data, "int") == 0 | strcmp(p->filhos->data, "double") == 0 | strcmp(p->filhos->data, "boolean") == 0 | strcmp(p->filhos->data, "string") == 0))
     {
         printf("Erro no valor do print\n"); // depois mudar para o print correto
     }
 }
 
-int check_assign(struct tnode *p, table *method_table)
+int check_operations(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
-    table_element *aux = search_el(method_table, p->filhos->valor);
-    if (aux == NULL)
-        aux = search_el(tabela, p->filhos->valor);
-    if (aux == NULL) // nao foi definido
-        return 1;
-    strcpy(p->data, aux->type);
-    strcpy(p->filhos->data, aux->type);
+
+    if (p->filhos->data[0] == '\0')
+    {
+        expr_checks(p->filhos, method_table);
+    }
+    
+    if (strcmp(p->filhos->data, "int") == 0)
+    {
+        if (p->filhos->irmaos->data[0] == '\0')
+           expr_checks(p->filhos->irmaos, method_table);
+
+        if (strcmp(p->filhos->irmaos->data, "double") == 0)
+        {
+            strcpy(p->data, "double");
+        }
+        else if (strcmp(p->filhos->irmaos->data, "int") == 0)
+        {
+            strcpy(p->data, "int");
+        }
+        else
+        {
+            strcpy(p->data, "undef");
+        }
+    }
+
+    else if (strcmp(p->filhos->data, "double") == 0)
+    {
+        if (p->filhos->irmaos->data[0] == '\0')
+            expr_checks(p->filhos->irmaos, method_table);
+
+        if (strcmp(p->filhos->irmaos->data, "double") == 0 || strcmp(p->filhos->irmaos->data, "int") == 0)
+        {
+            strcpy(p->data, "double");
+        }
+        else
+        {
+            strcpy(p->data, "undef");
+        }
+    }
 
     return errorcount;
+}
+
+void expr_checks(struct tnode *p, table *method_table)
+{
+    struct tnode *node_aux;
+
+    for (node_aux = p; node_aux; node_aux = node_aux->irmaos)
+    {
+        if (strcmp(node_aux->tipo, "Add") == 0)
+        {   
+            check_operations(node_aux, method_table);
+        }
+        if (strcmp(node_aux->tipo, "Sub") == 0)
+        {
+            // so por enquanto para nao dar erro.
+           check_operations(node_aux, method_table);
+        }
+        if (strcmp(node_aux->tipo, "Mul") == 0)
+        {
+            // so por enquanto para nao dar erro.
+           check_operations(node_aux, method_table);
+        }
+        if (strcmp(node_aux->tipo, "Div") == 0)
+        {
+            // so por enquanto para nao dar erro.
+           check_operations(node_aux, method_table);
+        }
+        if (strcmp(node_aux->tipo, "Mod") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "And") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Or") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Xor") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Lshift") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Rshift") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Eq") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Ge") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Gt") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Le") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Lt") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Ne") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Minus") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Not") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp(node_aux->tipo, "Plus") == 0)
+        {
+            // so por enquanto para nao dar erro.
+            strcpy(node_aux->data, "undef");
+        }
+        if (strcmp("DecLit", node_aux->tipo) == 0)
+        {
+            strcpy(node_aux->data, "int");
+        }
+        if (strcmp("RealLit", node_aux->tipo) == 0)
+        {
+            strcpy(node_aux->data, "double");
+        }
+        if (strcmp("BoolLit", node_aux->tipo) == 0)
+        {
+            strcpy(node_aux->data, "boolean");
+        }
+        if (strcmp("Id", node_aux->tipo) == 0)
+        {
+
+            table_element *aux = search_el(method_table, node_aux->valor);
+            if (aux == NULL)
+            {
+                aux = search_el(tabela, node_aux->valor);
+                if (aux == NULL)
+                    strcpy(node_aux->data, "undef");
+                else
+                {
+                    strcpy(node_aux->data, aux->type);
+                }
+            }
+            else
+            {
+                strcpy(node_aux->data, aux->type);
+            }
+        }
+    }
 }
 
 int check_var_decl(struct tnode *p, table *method_table)
@@ -371,42 +556,13 @@ void create_argumets(struct tnode *tnode, table *method_table)
     {
         for (node_aux = tnode->filhos->irmaos; node_aux; node_aux = node_aux->irmaos)
         {
-
             if (strcmp("Call", node_aux->tipo) == 0)
             {
                 check_call(node_aux, method_table);
             }
-
-            if (strcmp("Id", node_aux->tipo) == 0)
+            else
             {
-                table_element *aux = search_el(method_table, node_aux->valor);
-                if (aux == NULL)
-                {
-                    aux = search_el(tabela, node_aux->filhos->valor);
-                    if (aux == NULL)
-                        strcpy(node_aux->data, "undef");
-                    else
-                    {
-                        strcpy(node_aux->data, aux->type);
-                    }
-                }
-                else
-                {
-                    strcpy(node_aux->data, aux->type);
-                }
-            }
-
-            if (strcmp("DecLit", node_aux->tipo) == 0)
-            {
-                strcpy(node_aux->data, "int");
-            }
-            if (strcmp("RealLit", node_aux->tipo) == 0)
-            {
-                strcpy(node_aux->data, "double");
-            }
-            if (strcmp("BoolLit", node_aux->tipo) == 0)
-            {
-                strcpy(node_aux->data, "boolean");
+                expr_checks(node_aux, method_table);
             }
         }
     }
