@@ -234,6 +234,36 @@ int check_operations(struct tnode *p, table *method_table)
     return errorcount;
 }
 
+
+int check_value(struct tnode *p, table *method_table)
+{
+
+    if (p->filhos->data[0] == '\0')
+    {
+        expr_checks(p->filhos, method_table);
+    }
+
+    if(strcmp(p->tipo , "Not") == 0){
+        if(strcmp(p->filhos->data , "boolean") == 0){
+            strcpy(p->data , p->filhos->data);
+        }
+        else{
+            strcpy(p->data , "undef");
+            printf("Erro no operador Not!\n");
+        }
+    }
+    else{
+        if(strcmp(p->filhos->data , "int") == 0 || strcmp(p->filhos->data , "double") == 0){
+            strcpy(p->data , p->filhos->data);
+        }
+        else{
+            strcpy(p->data , "undef");
+            printf("Erro no operador %s!\n" , p->tipo);
+        }
+    }
+
+}
+
 void expr_checks(struct tnode *p, table *method_table)
 {
     struct tnode *node_aux;
@@ -246,23 +276,19 @@ void expr_checks(struct tnode *p, table *method_table)
         }
         if (strcmp(node_aux->tipo, "Sub") == 0)
         {
-            // so por enquanto para nao dar erro.
            check_operations(node_aux, method_table);
         }
         if (strcmp(node_aux->tipo, "Mul") == 0)
         {
-            // so por enquanto para nao dar erro.
            check_operations(node_aux, method_table);
         }
         if (strcmp(node_aux->tipo, "Div") == 0)
         {
-            // so por enquanto para nao dar erro.
            check_operations(node_aux, method_table);
         }
         if (strcmp(node_aux->tipo, "Mod") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            check_operations(node_aux, method_table);
         }
         if (strcmp(node_aux->tipo, "And") == 0)
         {
@@ -321,18 +347,15 @@ void expr_checks(struct tnode *p, table *method_table)
         }
         if (strcmp(node_aux->tipo, "Minus") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            check_value(node_aux , method_table);
         }
         if (strcmp(node_aux->tipo, "Not") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            check_value(node_aux , method_table);
         }
         if (strcmp(node_aux->tipo, "Plus") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            check_value(node_aux , method_table);
         }
         if (strcmp("DecLit", node_aux->tipo) == 0)
         {
