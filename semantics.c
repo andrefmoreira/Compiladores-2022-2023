@@ -47,7 +47,7 @@ int check_program(struct tnode *p)
 int check_fieldDecl(struct tnode *p)
 {
     int errorcount = 0;
-    table_element *new = insert_el(tabela->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
+    table_element *new = insert_el(tabela->table_element, p->filhos->irmaos->valor, p->filhos->tipo, false);
     if (new == NULL)
     {
         // printf("Symbol %s already defined!\n", iid->id);
@@ -62,13 +62,9 @@ int check_methodDecl(struct tnode *p)
     table *method_table = (table *)malloc(sizeof(table));
     strcpy(method_table->nome, p->filhos->filhos->irmaos->valor);
     strcpy(method_table->tipo, p->filhos->filhos->tipo);
-    table *new = new_table(tabela, method_table);
-    if (new == NULL)
-    {
-        // printf("Symbol %s already defined!\n", iid->id);
-        return 1;
-    }
     errorcount += check_methodHeader(p->filhos, method_table);
+    check_new_table(tabela, method_table);
+    table *new = new_table(tabela, method_table);
     return errorcount;
 }
 
@@ -78,9 +74,8 @@ int check_methodHeader(struct tnode *p, table *method_table)
 
     table_element *aux = (table_element *)malloc(sizeof(table_element));
     method_table->table_element = aux;
-    table_element *new_el = insert_el(method_table->table_element, "return", p->filhos->tipo);
+    table_element *new_el = insert_el(method_table->table_element, "return", p->filhos->tipo, false);
     errorcount += check_params(p->filhos->irmaos->irmaos, method_table);
-
     return errorcount;
 }
 
@@ -98,7 +93,7 @@ int check_params(struct tnode *p, table *method_table)
 int check_paramDecl(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
-    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
+    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo, false);
     if (new == NULL)
     {
         // printf("Symbol %s already defined!\n", iid->id);
@@ -115,7 +110,9 @@ int check_methodBody(struct tnode *p, table *method_table)
     char aux[256];
     tnode *p_aux;
     table *aux1;
-
+    if(!method_table->valido){
+        return 1;
+    }
     for (p_aux = p->filhos; p_aux; p_aux = p_aux->irmaos)
     {
         strcpy(aux, p_aux->tipo);
@@ -131,10 +128,6 @@ int check_methodBody(struct tnode *p, table *method_table)
         {
             // errorcount += check_if(p_aux, method_table);
         }
-        if (strcmp(aux, "Assign") == 0)
-        {
-            // errorcount += check_assign(p_aux, method_table);
-        }
         if (strcmp(aux, "Print") == 0)
         {
             errorcount += check_print(p_aux, method_table);
@@ -148,26 +141,12 @@ int check_methodBody(struct tnode *p, table *method_table)
     return errorcount;
 }
 
-int check_assign(struct tnode *p, table *method_table)
-{
-    int errorcount = 0;
-
-    expr_checks(p->filhos, method_table);
-    if(p->filhos->data[0] == '\0'){
-        printf("A data do filho é null\n");
-        strcpy(p->data, "Undef");
-    }
-    else
-        strcpy(p->data, p->filhos->data);
-
-    return errorcount;
-}
-
 int check_print(struct tnode *p, table *method_table)
 {
 
     char *type;
-    if (strcmp(p->filhos->tipo, "StrLit") == 0){
+    if (strcmp(p->filhos->tipo, "StrLit") == 0)
+    {
         strcpy(p->filhos->data, "String");
     }
 
@@ -184,7 +163,7 @@ int check_print(struct tnode *p, table *method_table)
     // Verificar se o tipo do print é correto no fim de tudo.
     if (!(strcmp(p->filhos->data, "int") == 0 | strcmp(p->filhos->data, "double") == 0 | strcmp(p->filhos->data, "boolean") == 0 | strcmp(p->filhos->data, "string") == 0))
     {
-        printf("Erro no valor do print\n"); // depois mudar para o print correto
+        // printf("Erro no valor do print\n"); // depois mudar para o print correto
     }
 }
 
@@ -196,11 +175,11 @@ int check_operations(struct tnode *p, table *method_table)
     {
         expr_checks(p->filhos, method_table);
     }
-    
+
     if (strcmp(p->filhos->data, "int") == 0)
     {
         if (p->filhos->irmaos->data[0] == '\0')
-           expr_checks(p->filhos->irmaos, method_table);
+            expr_checks(p->filhos->irmaos, method_table);
 
         if (strcmp(p->filhos->irmaos->data, "double") == 0)
         {
@@ -233,7 +212,6 @@ int check_operations(struct tnode *p, table *method_table)
 
     return errorcount;
 }
-
 
 int check_value(struct tnode *p, table *method_table)
 {
@@ -391,11 +369,27 @@ void expr_checks(struct tnode *p, table *method_table)
     }
 }
 
+int check_assign(struct tnode *p, table *method_table)
+{
+    int errorcount = 0;
+
+    expr_checks(p->filhos, method_table);
+    if (p->filhos->data[0] == '\0')
+    {
+        // printf("A data do filho é null\n");
+        strcpy(p->data, "Undef");
+    }
+    else
+        strcpy(p->data, p->filhos->data);
+
+    return errorcount;
+}
+
 int check_var_decl(struct tnode *p, table *method_table)
 {
     int errorcount = 0;
 
-    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo);
+    table_element *new = insert_el(method_table->table_element, p->filhos->irmaos->valor, p->filhos->tipo, false);
     if (new == NULL)
     {
         // printf("Symbol %s already defined!\n", iid->id);
@@ -530,14 +524,12 @@ int check_call(struct tnode *tnode, table *method_table)
                     {
                         if (el_aux->param == true)
                         {
-                            printf("%s,%s\n", el_aux->type, node_aux->tipo);
+                            // printf("%s,%s\n", el_aux->type, node_aux->tipo);
                             if (strcmp(el_aux->type, node_aux->valor) == 0)
                             {
-                                printf("PASSOU\n");
                             }
                             else
                             {
-                                printf("Argumento errado\n");
                                 // Argumento errado
                                 return 1;
                             }
@@ -561,7 +553,6 @@ int check_call(struct tnode *tnode, table *method_table)
                 }
                 else
                 {
-                    printf("PASSOU1\n");
                     return 0;
                 }
             }
