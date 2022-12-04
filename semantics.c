@@ -137,6 +137,17 @@ int check_methodBody(struct tnode *p, table *method_table)
         {
             errorcount += check_assign(p_aux, method_table);
         }
+        if (strcmp("ParseArgs", aux) == 0)
+        {
+            strcpy(p_aux->data , "int");
+            expr_checks(p_aux->filhos , method_table);
+        }
+        if(strcmp("Return" , aux) == 0)
+        {
+            if(p_aux->filhos != NULL){
+                expr_checks(p_aux->filhos , method_table);
+            }
+        }
     }
 
     return errorcount;
@@ -150,15 +161,16 @@ int check_print(struct tnode *p, table *method_table)
     {
         strcpy(p->filhos->data, "String");
     }
-
-    if (strcmp(p->filhos->tipo, "Call") == 0)
-    { 
-        check_call(p->filhos, method_table);
-    }
-
-    if (strcmp(p->filhos->tipo, "Add") == 0)
+    if(strcmp(p->filhos->tipo , "Call") == 0)
     {
-        check_operations(p->filhos, method_table);
+        check_call(p->filhos , method_table);
+    }
+    if(strcmp(p->filhos->tipo , "Assign") == 0)
+    {
+        check_assign(p->filhos , method_table);
+    }
+    else{
+        expr_checks(p->filhos , method_table);
     }
 
     // Verificar se o tipo do print é correto no fim de tudo.
@@ -251,7 +263,11 @@ void expr_checks(struct tnode *p, table *method_table)
     struct tnode *node_aux;
 
     for (node_aux = p; node_aux; node_aux = node_aux->irmaos)
-    {
+    {   
+        if (strcmp(node_aux->tipo, "Call") == 0)
+        {   
+            check_call(node_aux, method_table);
+        }
         if (strcmp(node_aux->tipo, "Add") == 0)
         {   
             check_operations(node_aux, method_table);
@@ -358,12 +374,18 @@ void expr_checks(struct tnode *p, table *method_table)
             strcpy(node_aux->data , "int");
             expr_checks(node_aux->filhos , method_table);
         }
+        if (strcmp("ParseArgs", node_aux->tipo) == 0)
+        {
+            strcpy(node_aux->data , "int");
+            expr_checks(node_aux->filhos , method_table);
+        }
         if (strcmp("Id", node_aux->tipo) == 0)
         {
 
             table_element *aux = search_el(method_table, node_aux->valor);
             if (aux == NULL)
             {
+
                 aux = search_el(tabela, node_aux->valor);
                 if (aux == NULL)
                     strcpy(node_aux->data, "undef");
@@ -410,18 +432,6 @@ int check_var_decl(struct tnode *p, table *method_table)
     return errorcount;
 }
 
-int check_if(struct tnode *p, table *method_table)
-{
-    int errorcount = 0;
-    char *aux;
-    strcpy(aux, p->filhos->tipo);
-    if (strcmp(aux, "Eq") == 0 || strcmp(aux, "Ge") == 0 || strcmp(aux, "Gt") == 0 || strcmp(aux, "Le") == 0 || strcmp(aux, "Lt") == 0 || strcmp(aux, "Ne") == 0 || strcmp(aux, "Not") == 0 || strcmp(aux, "BoolLit") == 0)
-    {
-    }
-
-    return errorcount;
-}
-
 int check_call(struct tnode *tnode, table *method_table)
 {
     int errorcount = 0;
@@ -437,7 +447,7 @@ int check_call(struct tnode *tnode, table *method_table)
     table *test;
     memset(aux_string, 0, strlen(aux_string));
     create_argumets(tnode, method_table);
-
+    
     for (test = tabela->next_table; test != NULL; test = test->next_table)
     {
 
@@ -579,16 +589,16 @@ void create_argumets(struct tnode *tnode, table *method_table)
 
     struct tnode *node_aux;
 
-    if (tnode->filhos->irmaos != NULL)
+    if (tnode->filhos != NULL)
     {
-        for (node_aux = tnode->filhos->irmaos; node_aux; node_aux = node_aux->irmaos)
+        for (node_aux = tnode->filhos; node_aux; node_aux = node_aux->irmaos)
         {
             if (strcmp("Call", node_aux->tipo) == 0)
             {
                 check_call(node_aux, method_table);
             }
             else
-            {
+            { 
                 expr_checks(node_aux, method_table);
             }
         }
