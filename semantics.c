@@ -126,7 +126,8 @@ int check_methodBody(struct tnode *p, table *method_table)
         }
         if (strcmp(aux, "If") == 0)
         {
-            // errorcount += check_if(p_aux, method_table);
+            expr_checks(p_aux->filhos , method_table);
+            check_methodBody(p_aux , method_table);
         }
         if (strcmp(aux, "Print") == 0)
         {
@@ -151,7 +152,7 @@ int check_print(struct tnode *p, table *method_table)
     }
 
     if (strcmp(p->filhos->tipo, "Call") == 0)
-    { // duas maneiras de fazer, dar check 1 a 1 ou, ter um check para expr que tem check para todos os nos dentro do expr
+    { 
         check_call(p->filhos, method_table);
     }
 
@@ -208,6 +209,9 @@ int check_operations(struct tnode *p, table *method_table)
         {
             strcpy(p->data, "undef");
         }
+    }
+    else{
+        strcpy(p->data , "undef");
     }
 
     return errorcount;
@@ -270,58 +274,56 @@ void expr_checks(struct tnode *p, table *method_table)
         }
         if (strcmp(node_aux->tipo, "And") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Or") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Xor") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Lshift") == 0)
         {
-            // so por enquanto para nao dar erro.
             strcpy(node_aux->data, "undef");
         }
         if (strcmp(node_aux->tipo, "Rshift") == 0)
         {
-            // so por enquanto para nao dar erro.
             strcpy(node_aux->data, "undef");
         }
         if (strcmp(node_aux->tipo, "Eq") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Ge") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Gt") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Le") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Lt") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Ne") == 0)
         {
-            // so por enquanto para nao dar erro.
-            strcpy(node_aux->data, "undef");
+            strcpy(node_aux->data , "boolean");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp(node_aux->tipo, "Minus") == 0)
         {
@@ -346,6 +348,15 @@ void expr_checks(struct tnode *p, table *method_table)
         if (strcmp("BoolLit", node_aux->tipo) == 0)
         {
             strcpy(node_aux->data, "boolean");
+        }
+        if (strcmp("Assign", node_aux->tipo) == 0)
+        {
+            check_assign(node_aux , method_table);
+        }
+        if (strcmp("Length", node_aux->tipo) == 0)
+        {
+            strcpy(node_aux->data , "int");
+            expr_checks(node_aux->filhos , method_table);
         }
         if (strcmp("Id", node_aux->tipo) == 0)
         {
@@ -432,6 +443,7 @@ int check_call(struct tnode *tnode, table *method_table)
 
         memset(arguments, 0, strlen(arguments));
         strcat(arguments, "(");
+        double_convert = 0;
 
         table_element *params;
         params = test->table_element->next;
@@ -456,8 +468,9 @@ int check_call(struct tnode *tnode, table *method_table)
                     }
                 }
 
-                if ((strcmp(node_aux->data, "int") == 0 && strcmp(params->type, "double") == 0))
+                if ((strcmp(node_aux->data, "int") == 0 && strcmp(params->type, "double") == 0)){
                     double_convert += 1;
+                }
 
                 if (params->next != NULL)
                 {
@@ -466,6 +479,7 @@ int check_call(struct tnode *tnode, table *method_table)
                 }
                 else
                     strcat(arguments, params->type);
+
 
                 if (params->next == NULL && node_aux->irmaos == NULL)
                 {
@@ -485,7 +499,6 @@ int check_call(struct tnode *tnode, table *method_table)
                         strcpy(aux_string, arguments);
                     }
                 }
-                double_convert = 0;
             }
         }
         else
