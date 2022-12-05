@@ -2,6 +2,7 @@
 #define SYMBOL_TABLE_H
 #include <string.h>
 #include <stdbool.h>
+#include "tree.h"
 
 typedef enum {integer, character, doub} basic_type;
 
@@ -23,9 +24,9 @@ typedef struct table{
 	table_element* table_element;
 } table;
 
-table_element *insert_el(table_element* class_element, char *str, char *tipo, bool tabela);
+table_element *insert_el(table_element* class_element, char *str, char *tipo, bool tabela, tnode* no);
 void show_table();
-table_element *search_el(table* symtab, char *str);
+table_element *search_el(table* symtab, char *str, bool tabela);
 table *new_table(table* symtab, table* new_table);
 void check_new_table(table* symtab, table* new_table);
 

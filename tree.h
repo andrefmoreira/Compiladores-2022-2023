@@ -13,9 +13,11 @@ typedef struct tnode{
     struct tnode* irmaos;
     struct tnode* filhos;
     char data[40000];
+    int linha;
+    int coluna;
 } tnode;
 
-tnode *add_node(char* nome, char* valor);
+tnode *add_node(char* nome, char* valor, int linha, int coluna);
 
 tnode *add_irmao(tnode* prIrmao, tnode* seIrmao);
 
