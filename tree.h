@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "struct.h"
 #define SIZE 1024
 
 
@@ -17,7 +18,7 @@ typedef struct tnode{
     int coluna;
 } tnode;
 
-tnode *add_node(char* nome, char* valor, int linha, int coluna);
+tnode *add_node(char* nome, new_struct* n);
 
 tnode *add_irmao(tnode* prIrmao, tnode* seIrmao);
 

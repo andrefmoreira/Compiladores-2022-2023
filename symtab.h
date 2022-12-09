@@ -28,6 +28,6 @@ table_element *insert_el(table_element* class_element, char *str, char *tipo, bo
 void show_table();
 table_element *search_el(table* symtab, char *str, bool tabela);
 table *new_table(table* symtab, table* new_table);
-void check_new_table(table* symtab, table* new_table);
+bool check_new_table(table* symtab, table* new_table);
 
 #endif

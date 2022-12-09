@@ -29,11 +29,11 @@ table *new_table(table *symtab, table *new_table)
 	{ // symtab tem um elemento -> o novo simbolo
 		symtab = new_table;
 	}
-	table_element* el_aux = insert_el(symtab->table_element, new_table->nome, new_table->tipo, true, NULL);
+	table_element *el_aux = insert_el(symtab->table_element, new_table->nome, new_table->tipo, true, NULL);
 	return new_table;
 }
 
-void check_new_table(table *symtab, table *new_table)
+bool check_new_table(table *symtab, table *new_table)
 {
 	table *aux;
 	table_element *aux1, *aux2;
@@ -44,12 +44,16 @@ void check_new_table(table *symtab, table *new_table)
 		if (strcmp(aux->nome, new_table->nome) == 0 && new_table != aux)
 		{
 			bool diferente = false;
-			aux1 = aux->table_element->next;
-			aux2 = new_table->table_element->next;
-			if((aux1->next && !aux2->next) || (!aux1->next && aux2->next))
-				return;
+			aux1 = aux->table_element->next->next;
+			aux2 = new_table->table_element->next->next;
+			if ((aux1 && !aux2) || (!aux1 && aux2))
+					return true;
 			for (; aux1 && aux2; aux1 = aux1->next, aux2 = aux2->next)
 			{
+				if ((aux1->param && !aux2->param) || (!aux1->param && aux2->param))
+					return true;
+				if ((aux1->next && !aux2->next) || (!aux1->next && aux2->next))
+					return true;
 				if (strcmp(aux1->type, aux2->type) != 0 && aux1->param && aux2->param)
 				{
 					diferente = true;
@@ -57,16 +61,15 @@ void check_new_table(table *symtab, table *new_table)
 			}
 			if (!diferente)
 			{
-				// erro already defined
 				new_table->valido = false;
-				return;
+				return false;
 			}
 		}
 	}
-	return;
+	return true;
 }
 
-table_element *insert_el(table_element *symtab, char *str, char *tipo, bool tabela, tnode* no)
+table_element *insert_el(table_element *symtab, char *str, char *tipo, bool tabela, tnode *no)
 {
 	table_element *newSymbol = (table_element *)malloc(sizeof(table_element));
 	table_element *aux;
@@ -88,7 +91,9 @@ table_element *insert_el(table_element *symtab, char *str, char *tipo, bool tabe
 	newSymbol->next = NULL;
 	newSymbol->param = false;
 	newSymbol->valido = true;
-	if(strcmp(newSymbol->name,"_")==0){
+	if (strcmp(newSymbol->name, "_") == 0)
+	{
+		printf("Line %d, col %d: Symbol _ is reserved\n", no->linha, no->coluna);
 		newSymbol->valido = false;
 	}
 	if (symtab) // Se table ja tem elementos
@@ -115,7 +120,8 @@ void show_table(table *symtab)
 	table *test;
 	table_element *el_test;
 	table *tab_aux;
-	if(symtab->next_table){
+	if (symtab->next_table)
+	{
 		tab_aux = symtab->next_table;
 	}
 	for (el_test = symtab->table_element->next; el_test; el_test = el_test->next)
@@ -124,10 +130,12 @@ void show_table(table *symtab)
 		{
 			printf("%s\t\t%s\n", el_test->name, el_test->type);
 		}
-		else if(el_test->tabela && el_test->valido)
+		else if (el_test->tabela && el_test->valido)
 		{
-			if(!tab_aux->valido){
-				if(tab_aux->next_table){
+			if (!tab_aux->valido)
+			{
+				if (tab_aux->next_table)
+				{
 					tab_aux = tab_aux->next_table;
 				}
 				continue;
@@ -153,7 +161,8 @@ void show_table(table *symtab)
 				}
 			}
 			printf(")\t%s\n", tab_aux->tipo);
-			if(tab_aux->next_table){
+			if (tab_aux->next_table)
+			{
 				tab_aux = tab_aux->next_table;
 			}
 		}
@@ -163,7 +172,8 @@ void show_table(table *symtab)
 	table_element *el_aux;
 	for (aux = symtab->next_table; aux; aux = aux->next_table)
 	{
-		if(!aux->valido){
+		if (!aux->valido)
+		{
 			continue;
 		}
 		printf("===== Method %s(", aux->nome);
@@ -182,14 +192,14 @@ void show_table(table *symtab)
 		printf(") Symbol Table =====\n");
 		for (el_aux = aux->table_element->next; el_aux; el_aux = el_aux->next)
 		{
-			if(!el_aux->valido){
+			if (!el_aux->valido)
+			{
 				continue;
 			}
 			if (el_aux->param == true)
 				printf("%s\t\t%s\t%s\n", el_aux->name, el_aux->type, "param");
 			else
 				printf("%s\t\t%s\n", el_aux->name, el_aux->type);
-			
 		}
 		printf("\n");
 	}
@@ -199,12 +209,14 @@ void show_table(table *symtab)
 table_element *search_el(table *symtab, char *str, bool tabela)
 {
 	table_element *aux;
-	if(!tabela){
+	if (!tabela)
+	{
 		for (aux = symtab->table_element; aux; aux = aux->next)
 			if (strcmp(aux->name, str) == 0 && !aux->tabela && aux->valido)
 				return aux;
 	}
-	if(tabela){
+	if (tabela)
+	{
 		for (aux = symtab->table_element; aux; aux = aux->next)
 			if (strcmp(aux->name, str) == 0 && aux->tabela && aux->valido)
 				return aux;

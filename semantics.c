@@ -47,10 +47,6 @@ int check_program(struct tnode *p)
 int check_fieldDecl(struct tnode *p)
 {
     int errorcount = 0;
-    if (strcmp(p->filhos->irmaos->valor, "_") == 0)
-    {
-        printf("Line %d, col %d: Symbol _ is reserved\n", p->filhos->irmaos->linha, p->filhos->irmaos->coluna);
-    }
     table_element *new = insert_el(tabela->table_element, p->filhos->irmaos->valor, p->filhos->tipo, false, p->filhos->irmaos);
     if (new == NULL)
     {
@@ -67,7 +63,24 @@ int check_methodDecl(struct tnode *p)
     strcpy(method_table->nome, p->filhos->filhos->irmaos->valor);
     strcpy(method_table->tipo, p->filhos->filhos->tipo);
     errorcount += check_methodHeader(p->filhos, method_table);
-    check_new_table(tabela, method_table);
+    if (!check_new_table(tabela, method_table))
+    {
+        printf("Line %d, col %d: Symbol %s(", p->filhos->filhos->irmaos->linha, p->filhos->filhos->irmaos->coluna, p->filhos->filhos->irmaos->valor);
+        table_element *aux;
+        for (aux = method_table->table_element->next; aux; aux = aux->next)
+        {
+            if (aux->param == true && aux->next != NULL)
+            {
+                if (aux->next->param == true)
+                    printf("%s,", aux->type);
+                else
+                    printf("%s", aux->type);
+            }
+            if (aux->param == true && aux->next == NULL)
+                printf("%s", aux->type);
+        }
+        printf(") already defined\n");
+    }
     table *new = new_table(tabela, method_table);
     return errorcount;
 }
@@ -125,51 +138,72 @@ int check_methodBody(struct tnode *p, table *method_table)
         {
             errorcount += check_var_decl(p_aux, method_table);
         }
-        if (strcmp(aux, "Call") == 0)
+        else if (strcmp(aux, "Call") == 0)
         {
             errorcount += check_call(p_aux, method_table);
         }
-        if (strcmp(aux, "If") == 0)
+        else if (strcmp(aux, "If") == 0)
         {
             expr_checks(p_aux->filhos, method_table, false);
 
             if (strcmp(p_aux->filhos->data, "boolean") != 0)
             {
-                printf("Line %d, col %d: Incompatible type %s in if statement\n", p_aux->linha, p_aux->coluna, p_aux->filhos->data);
+                printf("Line %d, col %d: Incompatible type %s in if statement\n", p_aux->filhos->linha, p_aux->filhos->coluna, p_aux->filhos->data);
+            }
+            tnode *node;
+            if (p_aux->filhos->irmaos)
+            {
+                for (node = p_aux->filhos->irmaos; node; node = node->irmaos)
+                {
+                    if (node->filhos)
+                    {
+                        check_methodBody(node, method_table);
+                    }
+                }
             }
             check_methodBody(p_aux, method_table);
         }
-        if (strcmp(aux, "While") == 0)
+        else if (strcmp(aux, "While") == 0)
         {
             expr_checks(p_aux->filhos, method_table, false);
 
             if (strcmp(p_aux->filhos->data, "boolean") != 0)
             {
-                printf("Line %d, col %d: Incompatible type %s in while statement\n", p_aux->linha, p_aux->coluna, p_aux->filhos->data);
+                printf("Line %d, col %d: Incompatible type %s in while statement\n", p_aux->filhos->linha, p_aux->filhos->coluna, p_aux->filhos->data);
+            }
+            tnode *node;
+            if (p_aux->filhos->irmaos)
+            {
+                for (node = p_aux->filhos->irmaos; node; node = node->irmaos)
+                {
+                    if (node->filhos)
+                    {
+                        check_methodBody(node, method_table);
+                    }
+                }
             }
             check_methodBody(p_aux, method_table);
         }
-        if (strcmp(aux, "Print") == 0)
+        else if (strcmp(aux, "Print") == 0)
         {
             errorcount += check_print(p_aux, method_table);
         }
-        if (strcmp(aux, "Assign") == 0)
+        else if (strcmp(aux, "Assign") == 0)
         {
             errorcount += check_assign(p_aux, method_table);
         }
-        if (strcmp("ParseArgs", aux) == 0)
+        else if (strcmp("ParseArgs", aux) == 0)
         {
-            strcpy(p_aux->data, "int");
-            expr_checks(p_aux->filhos, method_table, false);
+            check_parseargs(p_aux, method_table);
         }
-        if (strcmp("Return", aux) == 0)
+        else if (strcmp("Return", aux) == 0)
         {
             if (p_aux->filhos != NULL)
             {
                 expr_checks(p_aux->filhos, method_table, false);
                 if (strcmp(method_table->tipo, "void") == 0)
                 {
-                    printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->coluna, p_aux->filhos->data);
+                    printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->filhos->coluna, p_aux->filhos->data);
                 }
                 else if (strcmp(method_table->tipo, p_aux->filhos->data) != 0)
                 {
@@ -179,14 +213,14 @@ int check_methodBody(struct tnode *p, table *method_table)
                         {
                             if (strcmp(p_aux->filhos->data, "int") != 0)
                             {
-                                printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->coluna, p_aux->filhos->data);
+                                printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->filhos->coluna, p_aux->filhos->data);
                                 continue;
                             }
                             else
                                 continue;
                         }
                     }
-                    printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->coluna, p_aux->filhos->data);
+                    printf("Line %d, col %d: Incompatible type %s in return statement\n", p_aux->linha, p_aux->filhos->coluna, p_aux->filhos->data);
                 }
             }
             else
@@ -196,6 +230,10 @@ int check_methodBody(struct tnode *p, table *method_table)
                     printf("Line %d, col %d: Incompatible type void in return statement\n", p_aux->linha, p_aux->coluna);
                 }
             }
+        }
+        else
+        {
+            expr_checks(p_aux, method_table, false);
         }
     }
 
@@ -210,11 +248,11 @@ int check_print(struct tnode *p, table *method_table)
     {
         strcpy(p->filhos->data, "String");
     }
-    if (strcmp(p->filhos->tipo, "Call") == 0)
+    else if (strcmp(p->filhos->tipo, "Call") == 0)
     {
         check_call(p->filhos, method_table);
     }
-    if (strcmp(p->filhos->tipo, "Assign") == 0)
+    else if (strcmp(p->filhos->tipo, "Assign") == 0)
     {
         check_assign(p->filhos, method_table);
     }
@@ -224,9 +262,12 @@ int check_print(struct tnode *p, table *method_table)
     }
 
     // Verificar se o tipo do print é correto no fim de tudo.
-    if (!(strcmp(p->filhos->data, "int") == 0 | strcmp(p->filhos->data, "double") == 0 | strcmp(p->filhos->data, "boolean") == 0 | strcmp(p->filhos->data, "string") == 0))
+    if ((strcmp(p->filhos->data, "int") == 0 || strcmp(p->filhos->data, "double") == 0 || strcmp(p->filhos->data, "boolean") == 0 || strcmp(p->filhos->data, "String") == 0))
     {
-        // printf("Erro no valor do print\n"); // depois mudar para o print correto
+    }
+    else
+    {
+        printf("Line %d, col %d: Incompatible type %s in System.out.print statement\n", p->filhos->linha, p->filhos->coluna, p->filhos->data);
     }
 }
 
@@ -244,7 +285,7 @@ int check_operations(struct tnode *p, table *method_table)
         if (p->filhos->irmaos->data[0] == '\0')
             expr_checks(p->filhos->irmaos, method_table, false);
 
-        if (strcmp(p->filhos->irmaos->data, "double") == 0)
+        else if (strcmp(p->filhos->irmaos->data, "double") == 0)
         {
             strcpy(p->data, "double");
         }
@@ -264,7 +305,7 @@ int check_operations(struct tnode *p, table *method_table)
         if (p->filhos->irmaos->data[0] == '\0')
             expr_checks(p->filhos->irmaos, method_table, false);
 
-        if (strcmp(p->filhos->irmaos->data, "double") == 0 || strcmp(p->filhos->irmaos->data, "int") == 0)
+        else if (strcmp(p->filhos->irmaos->data, "double") == 0 || strcmp(p->filhos->irmaos->data, "int") == 0)
         {
             strcpy(p->data, "double");
         }
@@ -287,23 +328,23 @@ void error_expr(tnode *p)
 {
     if (strcmp(p->tipo, "Add") == 0)
     {
-        printf("Line %d, col %d: Operator + cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator + cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
     if (strcmp(p->tipo, "Sub") == 0)
     {
-        printf("Line %d, col %d: Operator - cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator - cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
     if (strcmp(p->tipo, "Mul") == 0)
     {
-        printf("Line %d, col %d: Operator * cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator * cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
     if (strcmp(p->tipo, "Div") == 0)
     {
-        printf("Line %d, col %d: Operator / cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator / cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
     if (strcmp(p->tipo, "Mod") == 0)
     {
-        printf("Line %d, col %d: Operator %% cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator %% cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
 }
 
@@ -323,8 +364,8 @@ int check_value(struct tnode *p, table *method_table)
         }
         else
         {
-            strcpy(p->data, "undef");
-            printf("Erro no operador Not!\n");
+            strcpy(p->data, "boolean");
+            printf("Line %d, col %d: Operator ! cannot be applied to type %s\n", p->linha, p->coluna, p->filhos->data);
         }
     }
     else
@@ -336,7 +377,7 @@ int check_value(struct tnode *p, table *method_table)
         else
         {
             strcpy(p->data, "undef");
-            printf("Erro no operador %s!\n", p->tipo);
+            printf("Line %d, col %d: Operator + cannot be applied to type %s\n", p->linha, p->coluna, p->filhos->data);
         }
     }
 }
@@ -375,11 +416,13 @@ void expr_checks(struct tnode *p, table *method_table, bool is_table)
         {
             strcpy(node_aux->data, "boolean");
             expr_checks(node_aux->filhos, method_table, false);
+            check_and(node_aux);
         }
         if (strcmp(node_aux->tipo, "Or") == 0)
         {
             strcpy(node_aux->data, "boolean");
             expr_checks(node_aux->filhos, method_table, false);
+            check_and(node_aux);
         }
         if (strcmp(node_aux->tipo, "Xor") == 0)
         {
@@ -396,31 +439,37 @@ void expr_checks(struct tnode *p, table *method_table, bool is_table)
         if (strcmp(node_aux->tipo, "Eq") == 0)
         {
             strcpy(node_aux->data, "boolean");
-            expr_checks(node_aux->filhos, method_table, false);
+            check_equality(node_aux);
+            expr_checks(node_aux->filhos, method_table,false);
         }
         if (strcmp(node_aux->tipo, "Ge") == 0)
         {
             strcpy(node_aux->data, "boolean");
+            check_relational(node_aux);
             expr_checks(node_aux->filhos, method_table, false);
         }
         if (strcmp(node_aux->tipo, "Gt") == 0)
         {
             strcpy(node_aux->data, "boolean");
+            check_relational(node_aux);
             expr_checks(node_aux->filhos, method_table, false);
         }
         if (strcmp(node_aux->tipo, "Le") == 0)
         {
             strcpy(node_aux->data, "boolean");
+            check_relational(node_aux);
             expr_checks(node_aux->filhos, method_table, false);
         }
         if (strcmp(node_aux->tipo, "Lt") == 0)
         {
             strcpy(node_aux->data, "boolean");
+            check_relational(node_aux);
             expr_checks(node_aux->filhos, method_table, false);
         }
         if (strcmp(node_aux->tipo, "Ne") == 0)
         {
             strcpy(node_aux->data, "boolean");
+            check_equality(node_aux);
             expr_checks(node_aux->filhos, method_table, false);
         }
         if (strcmp(node_aux->tipo, "Minus") == 0)
@@ -438,10 +487,12 @@ void expr_checks(struct tnode *p, table *method_table, bool is_table)
         if (strcmp("DecLit", node_aux->tipo) == 0)
         {
             strcpy(node_aux->data, "int");
+            check_int(node_aux);
         }
         if (strcmp("RealLit", node_aux->tipo) == 0)
         {
             strcpy(node_aux->data, "double");
+            check_double(node_aux);
         }
         if (strcmp("BoolLit", node_aux->tipo) == 0)
         {
@@ -484,10 +535,159 @@ void expr_checks(struct tnode *p, table *method_table, bool is_table)
     }
 }
 
+int check_int(struct tnode *p)
+{
+
+    int length = strlen(p->valor);
+    char valor[100];
+    memset(valor, 0, strlen(valor));
+    int y = 0;
+
+    for (int i = 0; i < length; i++)
+    {
+        if (p->valor[i] >= '0' && p->valor[i] <= '9')
+        {
+            valor[y] = p->valor[i];
+            y++;
+        }
+    }
+
+    if (strlen(valor) > 10)
+    {
+        printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+    }
+    else if (strlen(valor) == 10)
+    {
+        if (valor[9] > '8')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[8] > '4')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[7] > '6')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[6] > '3')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[5] > '8')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[4] > '4')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[3] > '7')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[2] > '4')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[1] > '1')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (valor[0] > '2')
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+        else if (strcmp(valor, "2147483648") == 0)
+            printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+    }
+}
+
+int check_double(struct tnode *p)
+{
+
+    char valor_aux[100];
+    int y = 0;
+    valor_aux[0] = '\0';
+    int option = 0;
+
+    for (int i = 0; p->valor[i]!='\0'; i++) {
+      if(p->valor[i] == 'E') {
+        option = 1;
+      }
+    }
+
+    char* str = strdup(p->valor);
+    char* valor = NULL;
+
+    if(option)
+        valor = strtok(str , "E");
+    else
+        valor = strtok(str , "E");
+
+    for (int i = 0; i < strlen(p->valor); i++)
+    {
+        if (p->valor[i] != '_')
+        {
+            valor_aux[y] = p->valor[i];
+            y++;
+        }
+    }
+    valor_aux[y] = '\0';
+    if(atof(valor_aux) == 0 && atof(valor) != 0)
+        printf("Line %d, col %d: Number %s out of bounds\n", p->linha, p->coluna, p->valor);
+}
+
+void check_and(tnode *no){
+    char *aux;
+    if (strcmp(no->tipo, "And") == 0)
+        aux = strdup("&&");
+    if (strcmp(no->tipo, "Or") == 0)
+        aux = strdup("||");
+    if (strcmp(no->filhos->data, no->filhos->irmaos->data) != 0)
+    {
+        printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+    }
+    else
+    {
+        if (strcmp(no->filhos->data, "String[]") == 0)
+        {
+            printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+        }
+    }
+}
+
+void check_equality(tnode *no)
+{
+    char *aux;
+    if (strcmp(no->tipo, "Eq") == 0)
+        aux = strdup("==");
+    if (strcmp(no->tipo, "Ne") == 0)
+        aux = strdup("!=");
+    if (strcmp(no->filhos->data, no->filhos->irmaos->data) != 0)
+    {
+        if ((strcmp(no->filhos->data, "double") == 0 && strcmp(no->filhos->irmaos->data, "int") == 0) || (strcmp(no->filhos->data, "int") == 0 && strcmp(no->filhos->irmaos->data, "double") == 0))
+            return;
+        printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+    }
+    else
+    {
+        if (strcmp(no->filhos->data, "String[]") == 0)
+        {
+            printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+        }
+    }
+}
+
+void check_relational(tnode *no)
+{
+    char *aux;
+    if (strcmp(no->tipo, "Ge") == 0)
+        aux = strdup(">=");
+    if (strcmp(no->tipo, "Gt") == 0)
+        aux = strdup(">");
+    if (strcmp(no->tipo, "Le") == 0)
+        aux = strdup("<=");
+    if (strcmp(no->tipo, "Lt") == 0)
+        aux = strdup("<");
+    if (strcmp(no->filhos->data, no->filhos->irmaos->data) != 0)
+    {
+        if ((strcmp(no->filhos->data, "double") == 0 && strcmp(no->filhos->irmaos->data, "int") == 0) || (strcmp(no->filhos->data, "int") == 0 && strcmp(no->filhos->irmaos->data, "double") == 0))
+            return;
+        printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+    }
+    else
+    {
+        if (strcmp(no->filhos->data, "String[]") == 0 || strcmp(no->filhos->data, "boolean") == 0)
+        {
+            printf("Line %d, col %d: Operator %s cannot be applied to types %s, %s\n", no->linha, no->coluna, aux, no->filhos->data, no->filhos->irmaos->data);
+        }
+    }
+}
+
 int check_parseargs(struct tnode *p, table *method_table)
 {
     strcpy(p->data, "int");
-
     if (p->filhos->data[0] == '\0')
     {
         expr_checks(p->filhos, method_table, false);
@@ -594,18 +794,18 @@ int check_shift(struct tnode *p, table *method_table)
         {
             strcpy(p->data, "undef");
             if (strcmp(p->tipo, "Lshift") == 0)
-                printf("Line %d, col %d: Operator << cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+                printf("Line %d, col %d: Operator << cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
             if (strcmp(p->tipo, "Rshift") == 0)
-                printf("Line %d, col %d: Operator >> cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+                printf("Line %d, col %d: Operator >> cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
         }
     }
     else
     {
         strcpy(p->data, "undef");
         if (strcmp(p->tipo, "Lshift") == 0)
-            printf("Line %d, col %d: Operator << cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+            printf("Line %d, col %d: Operator << cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
         if (strcmp(p->tipo, "Rshift") == 0)
-            printf("Line %d, col %d: Operator >> cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
+            printf("Line %d, col %d: Operator >> cannot be applied to types %s, %s\n", p->linha, p->coluna, p->filhos->data, p->filhos->irmaos->data);
     }
 }
 
@@ -618,7 +818,9 @@ int check_assign(struct tnode *p, table *method_table)
     strcpy(p->data, p->filhos->data);
     if (p->filhos->irmaos->data[0] == '\0')
         expr_checks(p->filhos->irmaos, method_table, false);
-
+    if(strcmp(p->filhos->data,"String[]")==0 && strcmp(p->filhos->irmaos->data,"String[]")==0){
+        printf("Line %d, col %d: Operator = cannot be applied to types %s, %s\n", p->linha, p->coluna,p->filhos->data, p->filhos->irmaos->data);
+    }
     if (strcmp(p->filhos->data, "double") == 0)
     {
         if (strcmp(p->filhos->irmaos->data, "double") == 0 || strcmp(p->filhos->irmaos->data, "int") == 0)
@@ -626,12 +828,12 @@ int check_assign(struct tnode *p, table *method_table)
         }
         else
         {
-            printf("Line %d, col %d: Operator = cannot be aplied to types double, %s\n", p->linha, p->coluna, p->filhos->irmaos->data);
+            printf("Line %d, col %d: Operator = cannot be applied to types double, %s\n", p->linha, p->coluna, p->filhos->irmaos->data);
         }
     }
     else if (strcmp(p->filhos->data, p->filhos->irmaos->data) != 0)
     {
-        printf("Line %d, col %d: Operator = cannot be aplied to types %s, %s\n", p->linha, p->coluna, p->data, p->filhos->irmaos->data);
+        printf("Line %d, col %d: Operator = cannot be applied to types %s, %s\n", p->linha, p->coluna, p->data, p->filhos->irmaos->data);
     }
     return errorcount;
 }
@@ -765,7 +967,7 @@ int check_call(struct tnode *tnode, table *method_table)
         printf("Line %d, col %d: Cannot find symbol %s(", tnode->linha, tnode->coluna, tnode->filhos->valor);
         if (tnode->filhos->irmaos)
         {
-            struct tnode * t_aux;
+            struct tnode *t_aux;
             for (t_aux = tnode->filhos->irmaos; t_aux; t_aux = t_aux->irmaos)
             {
                 if (!t_aux->irmaos)
