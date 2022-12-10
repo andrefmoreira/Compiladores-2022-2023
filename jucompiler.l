@@ -46,9 +46,9 @@ new_struct* aux;
 {number}+("_"*{number}+)*(("e"|"E")("+"|"-")?({number}+("_"*{number}+)*))   {if(option) printf("REALLIT(%s)\n",yytext);aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;coluna+=yyleng;yylval.n->str1=(char*)strdup(yytext);if(yacc_option) return REALLIT;}
 
 
-"true"                      {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;coluna+=yyleng;yylval.n->str1=(char*)strdup(yytext); if(yacc_option) return BOOLLIT;}
-"false"                     {if(option) printf("BOOLLIT(%s)\n",yytext);coluna+=yyleng;aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;coluna+=yyleng;yylval.n->str1=(char*)strdup(yytext); if(yacc_option) return BOOLLIT;}
-"&&"                        {if(option) printf("AND\n");coluna+=yyleng;if(yacc_option)return AND;}
+"true"                      {if(option) printf("BOOLLIT(%s)\n",yytext);aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;yylval.n->str1=(char*)strdup(yytext);coluna+=yyleng; if(yacc_option) return BOOLLIT;}
+"false"                     {if(option) printf("BOOLLIT(%s)\n",yytext);aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;yylval.n->str1=(char*)strdup(yytext);coluna+=yyleng; if(yacc_option) return BOOLLIT;}
+"&&"                        {if(option) printf("AND\n");aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;yylval.n->str1=(char*)strdup(yytext);coluna+=yyleng;if(yacc_option)return AND;}
 
 
 "="                         {if(option) printf("ASSIGN\n");aux = malloc(sizeof(new_struct));yylval.n=aux;yylval.n->coluna = coluna;yylval.n->linha = line;coluna+=yyleng;if(yacc_option) return ASSIGN;}
@@ -151,10 +151,9 @@ int main(int argc, char *argv[])
             yacc_option = 1;
             yyparse();
             check_program(arvore);
-            if(!error){
-                show_table(tabela);
-                printTree(arvore,0);
-            }
+            show_table(tabela);
+            printTree(arvore,0);
+
             
         }
     }

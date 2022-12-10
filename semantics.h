@@ -24,9 +24,9 @@ int check_xor(struct tnode *p, table *method_table);
 int check_shift(struct tnode *p, table *method_table);
 int check_length(struct tnode *p, table *method_table);
 int check_parseargs(struct tnode *p, table *method_table);
-void check_relational(tnode* no);
-void check_equality(tnode *no);
-void check_and(tnode *no);
+void check_relational(tnode* no , table *method_table);
+void check_equality(tnode *no , table *method_table);
+void check_and(tnode *no , table *method_table);
 int check_double(struct tnode *p);
 int check_int(struct tnode *p);
 #endif

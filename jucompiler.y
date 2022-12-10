@@ -208,6 +208,7 @@ Expr_2: Expr_2 PLUS Expr_2                                        {$$ = add_filh
 %%
 
 void yyerror (const char *s) {
-    error = 1; 
-    printf ("Line %d, col %d: %s: %s\n",line, coluna-yyleng ,s, yytext);
+    error = 1;
+    if(yacc_print == 1)
+        printf ("Line %d, col %d: %s: %s\n",line, coluna-yyleng ,s, yytext);
 }

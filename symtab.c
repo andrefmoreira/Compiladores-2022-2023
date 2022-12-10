@@ -38,28 +38,33 @@ bool check_new_table(table *symtab, table *new_table)
 	table *aux;
 	table_element *aux1, *aux2;
 	new_table->valido = true;
+	bool igual = false;
 
 	for (aux = symtab; aux; aux = aux->next_table)
 	{
+		if(igual == true)
+			break;
 		if (strcmp(aux->nome, new_table->nome) == 0 && new_table != aux)
 		{
-			bool diferente = false;
 			aux1 = aux->table_element->next->next;
 			aux2 = new_table->table_element->next->next;
 			if ((aux1 && !aux2) || (!aux1 && aux2))
 					return true;
 			for (; aux1 && aux2; aux1 = aux1->next, aux2 = aux2->next)
 			{
-				if ((aux1->param && !aux2->param) || (!aux1->param && aux2->param))
-					return true;
-				if ((aux1->next && !aux2->next) || (!aux1->next && aux2->next))
-					return true;
-				if (strcmp(aux1->type, aux2->type) != 0 && aux1->param && aux2->param)
+				if (strcmp(aux1->type, aux2->type) == 0 && aux1->param && aux2->param)
 				{
-					diferente = true;
+					if(aux1->next && aux2->next)
+						igual = true;
+					else if(aux1->next && !aux2->next || !aux1->next && aux2->next)
+						igual = false;
+				}
+				else
+				{
+					igual = false;
 				}
 			}
-			if (!diferente)
+			if (igual)
 			{
 				new_table->valido = false;
 				return false;
